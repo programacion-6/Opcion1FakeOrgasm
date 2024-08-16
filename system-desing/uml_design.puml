@@ -1,0 +1,575 @@
+@startuml Luiggy Mamani - Library Management Systems
+
+package "MODEL" {
+
+    package "models" {
+        abstract class EntityBase {
+            +Guid Id
+        }
+
+        class Book extends EntityBase {
+            +string Title
+            +string Author
+            +string ISBN
+            +string Genre
+            +int PublicationYear
+        }
+
+        class Patron extends EntityBase {
+            +string Name
+            +int MembershipNumber
+            +string ContactDetails
+        }
+
+        class Loan extends EntityBase {
+            +Book Book
+            +Patron Patron
+            +DateTime LoanDate
+            +DateTime ReturnDate
+            +bool WasReturn
+        }
+
+        class Fine extends EntityBase {
+            +Loan Loan
+            +double FineAmount
+            +bool WasPayed
+        }
+    }
+
+    package "repositories" {
+        interface IRepository<T extends EntityBase> {
+            +bool Save(T item)
+            +bool Update(T item)
+            +bool Delete(T item)
+            +T GetById(Guid itemId)
+            +List<T> GetAll()
+        }
+
+        abstract class BaseRepository <T extends EntityBase> implements IRepository<T> {
+            +Dictionary<Guid, T> Data
+            +bool Save(T item)
+            +bool Update(T item)
+            +bool Delete(T item)
+            +T GetById(Guid itemId)
+            +List<T> GetAll()
+        }
+
+        interface IBookRepository extends IRepository<Book> {
+            +Book GetByTitle(string title)
+            +Book GetByAuthor(string author)
+            +Book GetByISBN(string ISBN)
+            +List<Book> GetBooksByGenre(string genre)
+        }
+
+        class BookRepository extends BaseRepository<Book> implements IBookRepository {
+            +Book GetByTitle(string title)
+            +Book GetByAuthor(string author)
+            +Book GetByISBN(string ISBN)
+            +List<Book> GetBooksByGenre(string genre)
+        }
+
+        interface IPatronRepository extends IRepository<Patron> {
+            +Patron GetByName(string name)
+            +Patron GetByMembershipNumber(int membershipNumber)
+        }
+
+        class PatronRepository extends BaseRepository<Patron> implements IPatronRepository {
+            +Patron GetByName(string name)
+            +Patron GetByMembershipNumber(int membershipNumber)
+        }
+
+        interface ILoanRepository extends IRepository<Loan> {
+            +List<Loan> GetCurrentlyLoads()
+            +List<Loan> GetOverdueLoads()
+            +List<Loan> GetLoansByPatron(Patron patron)
+            +List<Loan> GetActiveLoansByPatron(Patron patron)
+        }
+
+        class LoanRepository extends BaseRepository<Loan> implements ILoanRepository {
+            +List<Loan> GetCurrentlyLoads()
+            +List<Loan> GetOverdueLoads()
+            +List<Loan> GetLoansByPatron(Patron patron)
+            +List<Loan> GetActiveLoansByPatron(Patron patron)
+        }
+
+        interface IFineRepository extends IRepository<Fine> {
+            +Fine GetByLoan(Loan loan)
+            +List<Fine> GetFinesByPatron(Patron patron)
+            +List<Fine> GetActiveFines()
+        }
+
+        class FineRepository extends BaseRepository<Fine> implements IFineRepository {
+            +Fine GetByLoan(Loan loan)
+            +List<Fine> GetFinesByPatron(Patron patron)
+            +List<Fine> GetActiveFines()
+        }
+    }
+
+    package "validators" {
+
+        package "exceptions" {
+            class BookException {
+                +BookException(string message)
+            }
+
+            class LoanException {
+                +LoanException(string message)
+            }
+
+            class PatronException {
+                +PatronException(string message)
+            }
+
+            Exception <|-- BookException
+            Exception <|-- LoanException
+            Exception <|-- PatronException
+        }
+
+        class BookValidator <<static>> {
+            +{static} void ValidateBook(Book book)
+            - {static} void ValidateTitle(string title)
+            - {static} void ValidateAuthor(string author)
+            - {static} void ValidateISBN(string isbn)
+            - {static} void ValidatePublicationYear(int year)
+        }
+
+        class PatronValidator <<static>> {
+            +{static} void ValidatePatron(Patron patron)
+            - {static} void ValidateName(string name)
+            - {static} void ValidateMembershipNumber(int membershipNumber)
+            - {static} void ValidateContactDetails(string contactDetails)
+        }
+
+        class LenderValidator {
+            - IFineRepository fineRepository
+            - <<const>> int MIN_LOAN_TIME
+            - <<const>> int MAX_LOAN_TIME
+
+            +bool HasFine(Patron patron)
+            +void ValidateLoanTime(int loanTimeInDays)
+        }
+    
+        LenderValidator *-- IFineRepository
+    }
+
+    package "services" {
+        class StatisticsGenerator {
+            - <<const>> int TOP_NUMBER_OF_ENTITIES
+
+            - IBookRepository bookRepository
+            - IPatronRepository patronRepository
+            - ILoanRepository loanRepository
+            - IFineRepository fineRepository
+
+            +List<Book> GetMostBorrowedBooks()
+            +List<Patron> GetMostActivePatrons()
+            +List<Tuple<Patron, List<Fine>>> GetPatronsFines()
+        }
+
+        StatisticsGenerator *-- IBookRepository
+        StatisticsGenerator *-- IPatronRepository
+        StatisticsGenerator *-- ILoanRepository
+        StatisticsGenerator *-- IFineRepository
+
+        class Reporter {
+            - ILoanRepository loanRepository
+
+            +List<Book> GetCurrentlyBorrowedBooks()
+            +List<Patron> GetPatternsThatBorrowedBooks()
+            +List<Book> GetOverdueBooks()
+            +List<Loan> GetLoansByPatron(Patron patron)
+        }
+
+        Reporter *-- ILoanRepository
+
+        class Lender {
+            - ILoanRepository loanRepository
+            - LenderValidator lenderValidator
+
+            +void LendBook(Book book, Patron patron, int loanTimeInDays)
+            +void ReturnBook(Loan loan)
+        }
+
+        Lender *-- ILoanRepository
+        Lender *-- LenderValidator
+
+        class DebtManager {
+            - ILoanRepository loanRepository
+            - IFineRepository fineRepository
+
+            - Fine CreateFine(Loan loan)
+            +void CreateDebtsAutomatically()
+            +void MarkAsPaid(Fine fine)
+        }
+
+        DebtManager *-- ILoanRepository
+        DebtManager *-- IFineRepository
+
+        class FineCalculator <<static>> {
+            - <<const>> int MIN_DAYS_OVERDUE
+            - <<const>> double DAILY_FINE_RATE
+            - <<const>> int WEEK_THRESHOLD
+            - <<const>> int MONTH_THRESHOLD
+            - <<const>> double WEEKLY_MULTIPLIER
+            - <<const>> double MONTHLY_MULTIPLIER
+
+            +{static} double GetFineAmountByDate(DateTime loanDate, DateTime returnDate)
+            - {static} double GetMultiplierForLoanDays(int totalDays)
+        }
+    }
+
+}
+
+package "VIEW" {
+
+    package "renderers" {
+
+        interface IViewRenderer<I> {
+            +void Render(I item)
+            +void RenderAsContainer(List<I> items)
+        }
+
+        abstract class AbstractMessageRenderer {
+            # IViewRenderer<string> renderer
+
+            +void {abstract} RenderSimpleMessage(message:string)
+            +void {abstract} RenderSuccessMessage(message:string)
+            +void {abstract} RenderErrorMessage(message:string)
+            +void {abstract} RenderInfoMessage(message:string)
+            +void {abstract} RenderIndicatorMessage(message:string)
+            +void {abstract} RenderHighlightMessage(message:string)
+        }
+
+        AbstractMessageRenderer *-- IViewRenderer
+
+        class ConsoleRenderer implements IViewRenderer<string> {
+            +void Render(string text)
+            +void RenderAsContainer(List<string> texts)
+        }
+        
+        class RendererResultsAsText<R> {
+            - IViewRenderer<string> renderer
+
+            +void RenderResult(R? result)
+            +void RenderResults(List<R> results)
+            +void RenderResultWith(R? result, S someElse)
+        }
+
+        RendererResultsAsText *-- IViewRenderer
+
+        class ConsoleMessageRenderer extends AbstractMessageRenderer<string> {
+            +void RenderSimpleMessage(string message)
+            +void RenderErrorMessage(string message)
+            +void RenderHighlightMessage(string message)
+            +void RenderIndicatorMessage(string message)
+            +void RenderInfoMessage(string message)
+            +void RenderSuccessMessage(string message)
+        }
+    }
+
+    package "receivers" {
+        interface IReceiver<I> {
+            I ReceiveInput()
+        }
+
+        class ConsoleReceiver implements IReceiver<string> {
+            string ReceiveInput()
+        }
+    }
+
+    package "utils" {
+        class ConsoleFormatter <<static>> {
+            -<<const>> string NEW_LINE
+            -<<const>> string SINGLE_SPACE
+            -<<const>> string BOLD
+            -<<const>> string RED
+            -<<const>> string YELLOW
+            -<<const>> string GREEN
+            -<<const>> string CYAN
+            -<<const>> string RESET
+
+            +{static} string AsAnError(string input)
+            +{static} string AsAnInfo(string input)
+            +{static} string AsSuccess(string input)
+            +{static} string AsIndicator(string input)
+            +{static} string AsAHighlight(string input)
+        }
+    }
+
+    package "view changers" {
+        enum MenuView {
+            BOOK_HANDLER
+            PATRON_HANDLER
+            LOAN_MANAGER
+            REPORT_MANAGER
+            DEBT_MANAGER
+        }
+
+        abstract class AbstractViewChanger<I> {
+            +MenuView currentView
+
+            +void ChangeView(MenuView newView)
+            +bool IsTheViewChanging(I inputReceived)
+        }
+
+        class ConsoleViewChanger extends AbstractViewChanger<string> {
+            +bool IsTheViewChanging(string inputReceived)
+            +void ChangeView(MenuView newView)
+        }
+
+        AbstractViewChanger o-- MenuView
+    }
+}
+
+package "CONTROLLER" {
+
+    interface IAppController {
+        +void ExecuteInfinitely()
+    }
+
+    interface IExecutableHandler<I> {
+        +void Execute(I inputReceived)
+    }
+
+    package "crud handlers" {
+
+        interface IEntityCreator<T extends EntityBase, R> {
+            +void TryToCreateEntity()
+        }
+
+        interface IEntityEliminator<T extends EntityBase, R> {
+            +void TryToDeleteEntity()
+        }
+
+        interface IEntityRequester<T extends EntityBase> {
+            +T? AskForEntity()
+        }
+
+        interface IEntityUpdater<T extends EntityBase, R> {
+            +void TryToUpdateEntity()
+        }
+
+        class EntityCreatorByConsole<T extends EntityBase> implements IEntityCreator<T, string> {
+            -IRepository<T> repository
+            -IEntityRequester<T> requester
+            -AbstractMessageRenderer renderer
+
+            +void TryToCreateEntity()
+            -void RenderSaveStatus(bool wasSaved)
+        }
+
+        EntityCreatorByConsole *-- IRepository
+        EntityCreatorByConsole *-- IEntityRequester
+        EntityCreatorByConsole *-- AbstractMessageRenderer
+
+        class EntityEliminatorByConsole<T extends EntityBase> implements IEntityEliminator<T, string>{
+            -IRepository<T> repository
+            -AbstractMessageRenderer renderer
+            -EntitySelectorByConsole<T> entitySelector
+
+            +void TryToDeleteEntity()
+            -void RenderDeleteStatus(bool wasDeleted)
+        }
+
+        EntityEliminatorByConsole *-- IRepository
+        EntityEliminatorByConsole *-- EntitySelectorByConsole
+        EntityEliminatorByConsole *-- AbstractMessageRenderer
+
+        class EntityUpdaterByConsole<T extends EntityBase> implements IEntityUpdater<T, string> {
+            -IRepository<T> repository
+            -IEntityRequester<T> entityRequester
+            -AbstractMessageRenderer renderer
+            -EntitySelectorByConsole<T> entitySelector
+
+            +void TryToUpdateEntity()
+            -void RenderDeleteStatus(bool wasUpdated)
+        }
+
+        EntityUpdaterByConsole *-- IRepository
+        EntityUpdaterByConsole *-- EntitySelectorByConsole
+        EntityUpdaterByConsole *-- AbstractMessageRenderer
+        EntityUpdaterByConsole *-- IEntityRequester
+
+        class EntitySelectorByConsole<T extends EntityBase> {
+            -<<const>> NO_INDEX_FOUND : int
+            -RendererResultsAsText<T> renderer
+            -AbstractMessageRenderer renderer
+            -IReceiver<string> receiver
+            
+            +T? TryToSelectAtLeastOne(List<T> entities)
+            -T? SelectEntityByConsole(List<T> entities)
+            -int GetValidIndex(List<T> entities)
+            -int TryToParseTheIndex(string inputReceived)
+            -bool IsValidIndex(int index, List<T> items)
+            -T? SelectEntityByIndex(int index, List<T> items)
+        }
+
+        EntitySelectorByConsole *-- RendererResultsAsText
+        EntitySelectorByConsole *-- AbstractMessageRenderer
+        EntitySelectorByConsole *-- IReceiver
+
+        class BookRequesterByConsole implements IEntityRequester<Book> {
+            -AbstractMessageRenderer renderer
+            -IReceiver<string> receiver
+
+            +Book? AskForEntity()
+            -Book ReceiveBookByConsole()
+            -int ReceiveYearAsNumber()
+        }
+
+        BookRequesterByConsole *-- AbstractMessageRenderer
+        BookRequesterByConsole *-- IReceiver
+
+        class PatronRequesterByConsole implements IEntityRequester<Patron> {
+            -AbstractMessageRenderer renderer
+            -IReceiver<string> receiver
+
+            +Patron? AskForEntity()
+            -Patron ReceivePatronByConsole()
+            -int GetMembershipNumberAsNumber()
+        }
+
+        PatronRequesterByConsole *-- AbstractMessageRenderer
+        PatronRequesterByConsole *-- IReceiver
+
+    }
+
+    class BookControllerAsText implements IExecutableHandler<string> {
+        -IBookRepository repository
+        -IReceiver<string> receiver
+        -IEntityCreator<Book, string> bookCreator
+        -IEntityUpdater<Book, string> bookUpdater
+        -IEntityEliminator<Book, string> bookEliminator
+        -AbstractMessageRenderer messageRenderer
+        -RendererResultsAsText<Book> rendererBooks
+
+        +void Execute(string inputReceived)
+        -void FindBooksByGenre()
+        -void FindBookByTitle()
+        -void FindBookByAuthor()
+        -void FindBookByISBN()
+    }
+
+    BookControllerAsText *-- IBookRepository
+    BookControllerAsText *-- IReceiver
+    BookControllerAsText *-- IEntityCreator
+    BookControllerAsText *-- IEntityUpdater
+    BookControllerAsText *-- IEntityEliminator
+    BookControllerAsText *-- AbstractMessageRenderer
+    BookControllerAsText *-- RendererResultsAsText
+
+    class PatronControllerAsText implements IExecutableHandler<string> {
+        -IReceiver<string> receiver
+        -IPatronRepository repository
+        -IEntityCreator<Patron, string> patronCreator
+        -IEntityUpdater<Patron, string> patronUpdater
+        -IEntityEliminator<Patron, string> patronEliminator
+        -AbstractMessageRenderer messageRenderer
+        -RendererResultsAsText<Patron> patronRenderer
+
+        +void Execute(string inputReceived)
+        -void FindPatronByName()
+        -void FindPatronByMembershipNumber()
+    }
+
+    PatronControllerAsText *-- IReceiver
+    PatronControllerAsText *-- IPatronRepository
+    PatronControllerAsText *-- IEntityCreator
+    PatronControllerAsText *-- IEntityUpdater
+    PatronControllerAsText *-- IEntityEliminator
+    PatronControllerAsText *-- AbstractMessageRenderer
+    PatronControllerAsText *-- RendererResultsAsText
+
+    class LoanControllerAsText implements IExecutableHandler<string> {
+        -Lender lender
+        -IReceiver<string> receiver
+        -ILoanRepository loanRepository
+        -IPatronRepository patronRepository
+        -IBookRepository bookRepository
+        -AbstractMessageRenderer messageRenderer
+        -EntitySelectorByConsole<Patron> patronSelector
+        -EntitySelectorByConsole<Book> bookSelector
+
+        +void Execute(string inputReceived)
+        -bool TheBookWasFound(Book? book)
+        -bool ThePatronWasFound(Patron? patron)
+        -void ReturnBook()
+        -void LendBook()
+    }
+
+    LoanControllerAsText *-- Lender
+    LoanControllerAsText *-- IReceiver
+    LoanControllerAsText *-- ILoanRepository
+    LoanControllerAsText *-- IPatronRepository
+    LoanControllerAsText *-- IBookRepository
+    LoanControllerAsText *-- AbstractMessageRenderer
+    LoanControllerAsText *-- EntitySelectorByConsole
+
+    class ReporterControllerAsText implements IExecutableHandler<string> {
+        -Reporter reporter
+        -StatisticsGenerator statisticsGenerator
+        -IPatronRepository patronRepository
+        -AbstractMessageRenderer messageRenderer
+        -RendererResultsAsText<Book> bookRenderer
+        -RendererResultsAsText<Patron> patronRenderer
+        -RendererResultsAsText<Loan> loanRenderer
+        -EntitySelectorByConsole<Patron> patronSelector
+
+        +void Execute(string inputReceived)
+        +void ShowOverdueBooks()
+        +void ShowCurrentlyBorrowedBooks()
+        +void ShowCurrentLoansByPatron()
+        +void ShowLoansByPatron()
+        +void ShowMostBorrowedBooks()
+        +void ShowMostActivePatrons()
+        +void ShowPatronsFines()
+    }
+
+    ReporterControllerAsText *-- Reporter
+    ReporterControllerAsText *-- StatisticsGenerator
+    ReporterControllerAsText *-- IPatronRepository
+    ReporterControllerAsText *-- AbstractMessageRenderer
+    ReporterControllerAsText *-- RendererResultsAsText
+    ReporterControllerAsText *-- EntitySelectorByConsole
+
+    class FineControllerAsText implements IExecutableHandler<string> {
+        -DebtManager debtManager
+        -IFineRepository fineRepository
+        -AbstractMessageRenderer messageRenderer
+        -RendererResultsAsText<Fine> fineRenderer
+        -EntitySelectorByConsole<Fine> fineSelector
+
+        +void Execute(string inputReceived)
+        +void ShowFines()
+        +void ShowActiveFines()
+        -void MarkAsPaid()
+    }
+
+    FineControllerAsText *-- DebtManager
+    FineControllerAsText *-- IFineRepository
+    FineControllerAsText *-- AbstractMessageRenderer
+    FineControllerAsText *-- RendererResultsAsText
+    FineControllerAsText *-- EntitySelectorByConsole
+
+    class AppControllerAsText implements IAppController {
+        -IExecutableHandler<string>? currentHandler
+
+        -AbstractViewChanger<string> viewChanger
+        -IReceiver<string> receiver
+        -AbstractMessageRenderer messageRenderer
+        -Dictionary<MenuView, IExecutableHandler<string>> controllers
+
+        -void Execute(string inputReceived)
+        -void SelectInitView()
+        -void ChangeView(string input)
+        +void ExecuteInfinitely()
+        -void ShowWelcome()
+    }
+
+    AppControllerAsText *-- AbstractViewChanger
+    AppControllerAsText *-- IReceiver
+    AppControllerAsText *-- AbstractMessageRenderer
+
+}
+
+@enduml

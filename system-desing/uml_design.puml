@@ -391,22 +391,15 @@ package "CONTROLLER" {
         EntityUpdaterByConsole *-- IEntityRequester
 
         class EntitySelectorByConsole<T extends EntityBase> {
-            -<<const>> NO_INDEX_FOUND : int
             -RendererResultsAsText<T> renderer
             -AbstractMessageRenderer renderer
-            -IReceiver<string> receiver
             
             +T? TryToSelectAtLeastOne(List<T> entities)
             -T? SelectEntityByConsole(List<T> entities)
-            -int GetValidIndex(List<T> entities)
-            -int TryToParseTheIndex(string inputReceived)
-            -bool IsValidIndex(int index, List<T> items)
-            -T? SelectEntityByIndex(int index, List<T> items)
         }
 
         EntitySelectorByConsole *-- RendererResultsAsText
         EntitySelectorByConsole *-- AbstractMessageRenderer
-        EntitySelectorByConsole *-- IReceiver
 
         class BookRequesterByConsole implements IEntityRequester<Book> {
             -AbstractMessageRenderer renderer

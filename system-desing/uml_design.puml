@@ -247,6 +247,18 @@ package "VIEW" {
             +void RenderResultWith(R? result, S someElse)
         }
 
+        class BookRenderer implements IResultRenderer<Book> {
+        }
+
+        class PatronRenderer implements IResultRenderer<Patron> {
+        }
+
+        class LoanRenderer implements IResultRenderer<Loan> {
+        }
+
+        class FineRenderer implements IResultRenderer<Fine> {
+        }
+
     }
 
     package "receivers" {

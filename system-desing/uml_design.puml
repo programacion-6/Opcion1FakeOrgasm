@@ -223,15 +223,7 @@ package "MODEL" {
 package "VIEW" {
 
     package "renderers" {
-
-        interface IViewRenderer<I> {
-            +void Render(I item)
-            +void RenderAsContainer(List<I> items)
-        }
-
-        abstract class AbstractMessageRenderer {
-            # IViewRenderer<string> renderer
-
+        interface IMessageRenderer {
             +void {abstract} RenderSimpleMessage(message:string)
             +void {abstract} RenderSuccessMessage(message:string)
             +void {abstract} RenderErrorMessage(message:string)
@@ -240,11 +232,13 @@ package "VIEW" {
             +void {abstract} RenderHighlightMessage(message:string)
         }
 
-        AbstractMessageRenderer *-- IViewRenderer
-
-        class ConsoleRenderer implements IViewRenderer<string> {
-            +void Render(string text)
-            +void RenderAsContainer(List<string> texts)
+        class ConsoleMessageRenderer implements IMessageRenderer<string> {
+            +void RenderSimpleMessage(string message)
+            +void RenderErrorMessage(string message)
+            +void RenderHighlightMessage(string message)
+            +void RenderIndicatorMessage(string message)
+            +void RenderInfoMessage(string message)
+            +void RenderSuccessMessage(string message)
         }
         
         interface IResultRenderer<R> {
@@ -253,14 +247,6 @@ package "VIEW" {
             +void RenderResultWith(R? result, S someElse)
         }
 
-        class ConsoleMessageRenderer extends AbstractMessageRenderer<string> {
-            +void RenderSimpleMessage(string message)
-            +void RenderErrorMessage(string message)
-            +void RenderHighlightMessage(string message)
-            +void RenderIndicatorMessage(string message)
-            +void RenderInfoMessage(string message)
-            +void RenderSuccessMessage(string message)
-        }
     }
 
     package "receivers" {
@@ -348,7 +334,7 @@ package "CONTROLLER" {
         class EntityCreatorByConsole<T extends EntityBase> implements IEntityCreator<T, string> {
             -IRepository<T> repository
             -IEntityRequester<T> requester
-            -AbstractMessageRenderer renderer
+            -IMessageRenderer renderer
 
             +void TryToCreateEntity()
             -void RenderSaveStatus(bool wasSaved)
@@ -356,11 +342,11 @@ package "CONTROLLER" {
 
         EntityCreatorByConsole *-- IRepository
         EntityCreatorByConsole *-- IEntityRequester
-        EntityCreatorByConsole *-- AbstractMessageRenderer
+        EntityCreatorByConsole *-- IMessageRenderer
 
         class EntityEliminatorByConsole<T extends EntityBase> implements IEntityEliminator<T, string>{
             -IRepository<T> repository
-            -AbstractMessageRenderer renderer
+            -IMessageRenderer renderer
             -EntitySelectorByConsole<T> entitySelector
 
             +void TryToDeleteEntity()
@@ -369,12 +355,12 @@ package "CONTROLLER" {
 
         EntityEliminatorByConsole *-- IRepository
         EntityEliminatorByConsole *-- EntitySelectorByConsole
-        EntityEliminatorByConsole *-- AbstractMessageRenderer
+        EntityEliminatorByConsole *-- IMessageRenderer
 
         class EntityUpdaterByConsole<T extends EntityBase> implements IEntityUpdater<T, string> {
             -IRepository<T> repository
             -IEntityRequester<T> entityRequester
-            -AbstractMessageRenderer renderer
+            -IMessageRenderer renderer
             -EntitySelectorByConsole<T> entitySelector
 
             +void TryToUpdateEntity()
@@ -383,22 +369,22 @@ package "CONTROLLER" {
 
         EntityUpdaterByConsole *-- IRepository
         EntityUpdaterByConsole *-- EntitySelectorByConsole
-        EntityUpdaterByConsole *-- AbstractMessageRenderer
+        EntityUpdaterByConsole *-- IMessageRenderer
         EntityUpdaterByConsole *-- IEntityRequester
 
         class EntitySelectorByConsole<T extends EntityBase> {
             -IResultRenderer<T> renderer
-            -AbstractMessageRenderer renderer
+            -IMessageRenderer renderer
             
             +T? TryToSelectAtLeastOne(List<T> entities)
             -T? SelectEntityByConsole(List<T> entities)
         }
 
         EntitySelectorByConsole *-- IResultRenderer
-        EntitySelectorByConsole *-- AbstractMessageRenderer
+        EntitySelectorByConsole *-- IMessageRenderer
 
         class BookRequesterByConsole implements IEntityRequester<Book> {
-            -AbstractMessageRenderer renderer
+            -IMessageRenderer renderer
             -IReceiver<string> receiver
 
             +Book? AskForEntity()
@@ -406,11 +392,11 @@ package "CONTROLLER" {
             -int ReceiveYearAsNumber()
         }
 
-        BookRequesterByConsole *-- AbstractMessageRenderer
+        BookRequesterByConsole *-- IMessageRenderer
         BookRequesterByConsole *-- IReceiver
 
         class PatronRequesterByConsole implements IEntityRequester<Patron> {
-            -AbstractMessageRenderer renderer
+            -IMessageRenderer renderer
             -IReceiver<string> receiver
 
             +Patron? AskForEntity()
@@ -418,7 +404,7 @@ package "CONTROLLER" {
             -int GetMembershipNumberAsNumber()
         }
 
-        PatronRequesterByConsole *-- AbstractMessageRenderer
+        PatronRequesterByConsole *-- IMessageRenderer
         PatronRequesterByConsole *-- IReceiver
 
     }
@@ -429,7 +415,7 @@ package "CONTROLLER" {
         -IEntityCreator<Book, string> bookCreator
         -IEntityUpdater<Book, string> bookUpdater
         -IEntityEliminator<Book, string> bookEliminator
-        -AbstractMessageRenderer messageRenderer
+        -IMessageRenderer messageRenderer
         -IResultRenderer<Book> rendererBooks
 
         +void Execute(string inputReceived)
@@ -444,7 +430,7 @@ package "CONTROLLER" {
     BookControllerAsText *-- IEntityCreator
     BookControllerAsText *-- IEntityUpdater
     BookControllerAsText *-- IEntityEliminator
-    BookControllerAsText *-- AbstractMessageRenderer
+    BookControllerAsText *-- IMessageRenderer
     BookControllerAsText *-- IResultRenderer
 
     class PatronControllerAsText implements IExecutableHandler<string> {
@@ -453,7 +439,7 @@ package "CONTROLLER" {
         -IEntityCreator<Patron, string> patronCreator
         -IEntityUpdater<Patron, string> patronUpdater
         -IEntityEliminator<Patron, string> patronEliminator
-        -AbstractMessageRenderer messageRenderer
+        -IMessageRenderer messageRenderer
         -IResultRenderer<Patron> patronRenderer
 
         +void Execute(string inputReceived)
@@ -466,7 +452,7 @@ package "CONTROLLER" {
     PatronControllerAsText *-- IEntityCreator
     PatronControllerAsText *-- IEntityUpdater
     PatronControllerAsText *-- IEntityEliminator
-    PatronControllerAsText *-- AbstractMessageRenderer
+    PatronControllerAsText *-- IMessageRenderer
     PatronControllerAsText *-- IResultRenderer
 
     class LoanControllerAsText implements IExecutableHandler<string> {
@@ -475,7 +461,7 @@ package "CONTROLLER" {
         -ILoanRepository loanRepository
         -IPatronRepository patronRepository
         -IBookRepository bookRepository
-        -AbstractMessageRenderer messageRenderer
+        -IMessageRenderer messageRenderer
         -EntitySelectorByConsole<Patron> patronSelector
         -EntitySelectorByConsole<Book> bookSelector
 
@@ -491,14 +477,14 @@ package "CONTROLLER" {
     LoanControllerAsText *-- ILoanRepository
     LoanControllerAsText *-- IPatronRepository
     LoanControllerAsText *-- IBookRepository
-    LoanControllerAsText *-- AbstractMessageRenderer
+    LoanControllerAsText *-- IMessageRenderer
     LoanControllerAsText *-- EntitySelectorByConsole
 
     class ReporterControllerAsText implements IExecutableHandler<string> {
         -Reporter reporter
         -StatisticsGenerator statisticsGenerator
         -IPatronRepository patronRepository
-        -AbstractMessageRenderer messageRenderer
+        -IMessageRenderer messageRenderer
         -IResultRenderer<Book> bookRenderer
         -IResultRenderer<Patron> patronRenderer
         -IResultRenderer<Loan> loanRenderer
@@ -517,14 +503,14 @@ package "CONTROLLER" {
     ReporterControllerAsText *-- Reporter
     ReporterControllerAsText *-- StatisticsGenerator
     ReporterControllerAsText *-- IPatronRepository
-    ReporterControllerAsText *-- AbstractMessageRenderer
+    ReporterControllerAsText *-- IMessageRenderer
     ReporterControllerAsText *-- IResultRenderer
     ReporterControllerAsText *-- EntitySelectorByConsole
 
     class FineControllerAsText implements IExecutableHandler<string> {
         -DebtManager debtManager
         -IFineRepository fineRepository
-        -AbstractMessageRenderer messageRenderer
+        -IMessageRenderer messageRenderer
         -IResultRenderer<Fine> fineRenderer
         -EntitySelectorByConsole<Fine> fineSelector
 
@@ -536,7 +522,7 @@ package "CONTROLLER" {
 
     FineControllerAsText *-- DebtManager
     FineControllerAsText *-- IFineRepository
-    FineControllerAsText *-- AbstractMessageRenderer
+    FineControllerAsText *-- IMessageRenderer
     FineControllerAsText *-- IResultRenderer
     FineControllerAsText *-- EntitySelectorByConsole
 
@@ -545,7 +531,7 @@ package "CONTROLLER" {
 
         -AbstractViewChanger<string> viewChanger
         -IReceiver<string> receiver
-        -AbstractMessageRenderer messageRenderer
+        -IMessageRenderer messageRenderer
         -Dictionary<MenuView, IExecutableHandler<string>> controllers
 
         -void Execute(string inputReceived)
@@ -557,7 +543,7 @@ package "CONTROLLER" {
 
     AppControllerAsText *-- AbstractViewChanger
     AppControllerAsText *-- IReceiver
-    AppControllerAsText *-- AbstractMessageRenderer
+    AppControllerAsText *-- IMessageRenderer
 
 }
 

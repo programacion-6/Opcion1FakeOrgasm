@@ -1,18 +1,8 @@
 @startuml
 package "req [Package] Patrons management [requirement diagram]" {
-    stereotype "Account access" as account_access <<Requirement>> {
-        overview = Interface to log-in or log-out of the system
-    }
-
-    stereotype "Account creation" as account_creation <<Requirement>> {
-        overview = Interface to register an account
-    }
-
     stereotype "Patron account" as patron_account <<Requirement>> {
         overview = name, membership number, and contact details.
     }
-    patron_account <.. account_access: <<deriveReqt>>
-    patron_account <.. account_creation: <<deriveReqt>>
 
     stereotype "Patron repository" as patron_repository <<Requirement>> {
         overview = manage patron information

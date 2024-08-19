@@ -247,15 +247,11 @@ package "VIEW" {
             +void RenderAsContainer(List<string> texts)
         }
         
-        class RendererResultsAsText<R> {
-            - IViewRenderer<string> renderer
-
+        interface IResultRenderer<R> {
             +void RenderResult(R? result)
             +void RenderResults(List<R> results)
             +void RenderResultWith(R? result, S someElse)
         }
-
-        RendererResultsAsText *-- IViewRenderer
 
         class ConsoleMessageRenderer extends AbstractMessageRenderer<string> {
             +void RenderSimpleMessage(string message)
@@ -391,14 +387,14 @@ package "CONTROLLER" {
         EntityUpdaterByConsole *-- IEntityRequester
 
         class EntitySelectorByConsole<T extends EntityBase> {
-            -RendererResultsAsText<T> renderer
+            -IResultRenderer<T> renderer
             -AbstractMessageRenderer renderer
             
             +T? TryToSelectAtLeastOne(List<T> entities)
             -T? SelectEntityByConsole(List<T> entities)
         }
 
-        EntitySelectorByConsole *-- RendererResultsAsText
+        EntitySelectorByConsole *-- IResultRenderer
         EntitySelectorByConsole *-- AbstractMessageRenderer
 
         class BookRequesterByConsole implements IEntityRequester<Book> {
@@ -434,7 +430,7 @@ package "CONTROLLER" {
         -IEntityUpdater<Book, string> bookUpdater
         -IEntityEliminator<Book, string> bookEliminator
         -AbstractMessageRenderer messageRenderer
-        -RendererResultsAsText<Book> rendererBooks
+        -IResultRenderer<Book> rendererBooks
 
         +void Execute(string inputReceived)
         -void FindBooksByGenre()
@@ -449,7 +445,7 @@ package "CONTROLLER" {
     BookControllerAsText *-- IEntityUpdater
     BookControllerAsText *-- IEntityEliminator
     BookControllerAsText *-- AbstractMessageRenderer
-    BookControllerAsText *-- RendererResultsAsText
+    BookControllerAsText *-- IResultRenderer
 
     class PatronControllerAsText implements IExecutableHandler<string> {
         -IReceiver<string> receiver
@@ -458,7 +454,7 @@ package "CONTROLLER" {
         -IEntityUpdater<Patron, string> patronUpdater
         -IEntityEliminator<Patron, string> patronEliminator
         -AbstractMessageRenderer messageRenderer
-        -RendererResultsAsText<Patron> patronRenderer
+        -IResultRenderer<Patron> patronRenderer
 
         +void Execute(string inputReceived)
         -void FindPatronByName()
@@ -471,7 +467,7 @@ package "CONTROLLER" {
     PatronControllerAsText *-- IEntityUpdater
     PatronControllerAsText *-- IEntityEliminator
     PatronControllerAsText *-- AbstractMessageRenderer
-    PatronControllerAsText *-- RendererResultsAsText
+    PatronControllerAsText *-- IResultRenderer
 
     class LoanControllerAsText implements IExecutableHandler<string> {
         -Lender lender
@@ -503,9 +499,9 @@ package "CONTROLLER" {
         -StatisticsGenerator statisticsGenerator
         -IPatronRepository patronRepository
         -AbstractMessageRenderer messageRenderer
-        -RendererResultsAsText<Book> bookRenderer
-        -RendererResultsAsText<Patron> patronRenderer
-        -RendererResultsAsText<Loan> loanRenderer
+        -IResultRenderer<Book> bookRenderer
+        -IResultRenderer<Patron> patronRenderer
+        -IResultRenderer<Loan> loanRenderer
         -EntitySelectorByConsole<Patron> patronSelector
 
         +void Execute(string inputReceived)
@@ -522,14 +518,14 @@ package "CONTROLLER" {
     ReporterControllerAsText *-- StatisticsGenerator
     ReporterControllerAsText *-- IPatronRepository
     ReporterControllerAsText *-- AbstractMessageRenderer
-    ReporterControllerAsText *-- RendererResultsAsText
+    ReporterControllerAsText *-- IResultRenderer
     ReporterControllerAsText *-- EntitySelectorByConsole
 
     class FineControllerAsText implements IExecutableHandler<string> {
         -DebtManager debtManager
         -IFineRepository fineRepository
         -AbstractMessageRenderer messageRenderer
-        -RendererResultsAsText<Fine> fineRenderer
+        -IResultRenderer<Fine> fineRenderer
         -EntitySelectorByConsole<Fine> fineSelector
 
         +void Execute(string inputReceived)
@@ -541,7 +537,7 @@ package "CONTROLLER" {
     FineControllerAsText *-- DebtManager
     FineControllerAsText *-- IFineRepository
     FineControllerAsText *-- AbstractMessageRenderer
-    FineControllerAsText *-- RendererResultsAsText
+    FineControllerAsText *-- IResultRenderer
     FineControllerAsText *-- EntitySelectorByConsole
 
     class AppControllerAsText implements IAppController {

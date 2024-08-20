@@ -7,10 +7,10 @@ public class PatronControllerAsText : IExecutableHandler<string>
     private IEntityCreator<Patron, string> _patronCreator;
     private IEntityUpdater<Patron, string> _patronUpdater;
     private IEntityEliminator<Patron, string> _patronEliminator;
-    private AbstractMessageRenderer _messageRenderer;
+    private IMessageRenderer _messageRenderer;
     private RendererResultsAsText<Patron> _patronRenderer;
 
-    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, AbstractMessageRenderer messageRenderer, RendererResultsAsText<Patron> patronRenderer)
+    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, IMessageRenderer messageRenderer, RendererResultsAsText<Patron> patronRenderer)
     {
         _repository = repository;
         _patronCreator = patronCreator;

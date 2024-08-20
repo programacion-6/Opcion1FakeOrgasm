@@ -7,11 +7,11 @@ public class LoanControllerAsText : IExecutableHandler<string>
     private ILoanRepository _loanRepository;
     private IPatronRepository _patronRepository;
     private IBookRepository _bookRepository;
-    private AbstractMessageRenderer _messageRenderer;
+    private IMessageRenderer _messageRenderer;
     private EntitySelectorByConsole<Patron> _patronSelector;
     private EntitySelectorByConsole<Book> _bookSelector;
 
-    public LoanControllerAsText(Lender lender, ILoanRepository loanRepository, IPatronRepository patronRepository, IBookRepository bookRepository, IReceiver<string> receiver, AbstractMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector, EntitySelectorByConsole<Book> bookSelector)
+    public LoanControllerAsText(Lender lender, ILoanRepository loanRepository, IPatronRepository patronRepository, IBookRepository bookRepository, IReceiver<string> receiver, IMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector, EntitySelectorByConsole<Book> bookSelector)
     {
         _lender = lender;
         _loanRepository = loanRepository;

@@ -3,11 +3,11 @@
 public class PatronRequesterByConsole : IEntityRequester<Patron>
 {
 
-    private AbstractMessageRenderer _renderer;
+    private IMessageRenderer _renderer;
 
     private IReceiver<string> _receiver;
 
-    public PatronRequesterByConsole(IReceiver<string> receiver, AbstractMessageRenderer renderer)
+    public PatronRequesterByConsole(IReceiver<string> receiver, IMessageRenderer renderer)
     {
         _receiver = receiver;
         _renderer = renderer;

@@ -3,11 +3,11 @@
 public class EntitySelectorByConsole<T> where T : EntityBase
 {
     private const int NO_INDEX_FOUND = -1;
-    private AbstractMessageRenderer _messageRenderer;
+    private IMessageRenderer _messageRenderer;
     private RendererResultsAsText<T> _renderer;
     private IReceiver<string> _receiver;
 
-    public EntitySelectorByConsole(RendererResultsAsText<T> renderer, AbstractMessageRenderer messageRenderer, IReceiver<string> receiver)
+    public EntitySelectorByConsole(RendererResultsAsText<T> renderer, IMessageRenderer messageRenderer, IReceiver<string> receiver)
     {
         _renderer = renderer;
         _messageRenderer = messageRenderer;

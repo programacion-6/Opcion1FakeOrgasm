@@ -4,10 +4,10 @@ public class EntityUpdaterByConsole<T> : IEntityUpdater<T, string> where T : Ent
 {
     private IRepository<T> _repository;
     private IEntityRequester<T> _entityRequester;
-    private AbstractMessageRenderer _renderer;
+    private IMessageRenderer _renderer;
     private EntitySelectorByConsole<T> _entitySelector;
 
-    public EntityUpdaterByConsole(IRepository<T> repository, IEntityRequester<T> entityRequester, AbstractMessageRenderer renderer, EntitySelectorByConsole<T> entitySelector)
+    public EntityUpdaterByConsole(IRepository<T> repository, IEntityRequester<T> entityRequester, IMessageRenderer renderer, EntitySelectorByConsole<T> entitySelector)
     {
         _repository = repository;
         _entityRequester = entityRequester;

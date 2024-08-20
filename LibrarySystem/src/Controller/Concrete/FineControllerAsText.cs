@@ -4,11 +4,11 @@ public class FineControllerAsText : IExecutableHandler<string>
 {
     private DebtManager _debtManager;
     private IFineRepository _fineRepository;
-    private AbstractMessageRenderer _messageRenderer;
+    private IMessageRenderer _messageRenderer;
     private RendererResultsAsText<Fine> _fineRenderer;
     private EntitySelectorByConsole<Fine> _fineSelector;
 
-    public FineControllerAsText(DebtManager debtManager, IFineRepository fineRepository, AbstractMessageRenderer messageRenderer, RendererResultsAsText<Fine> fineRenderer, EntitySelectorByConsole<Fine> fineSelector)
+    public FineControllerAsText(DebtManager debtManager, IFineRepository fineRepository, IMessageRenderer messageRenderer, RendererResultsAsText<Fine> fineRenderer, EntitySelectorByConsole<Fine> fineSelector)
     {
         _debtManager = debtManager;
         _fineRepository = fineRepository;

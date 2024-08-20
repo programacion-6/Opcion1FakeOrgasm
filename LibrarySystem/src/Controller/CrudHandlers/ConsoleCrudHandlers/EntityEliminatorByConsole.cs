@@ -3,10 +3,10 @@
 public class EntityEliminatorByConsole<T> : IEntityEliminator<T, string> where T : EntityBase
 {
     private IRepository<T> _repository;
-    private AbstractMessageRenderer _renderer;
+    private IMessageRenderer _renderer;
     private EntitySelectorByConsole<T> _entitySelector;
 
-    public EntityEliminatorByConsole(IRepository<T> repository, AbstractMessageRenderer renderer, EntitySelectorByConsole<T> entitySelector)
+    public EntityEliminatorByConsole(IRepository<T> repository, IMessageRenderer renderer, EntitySelectorByConsole<T> entitySelector)
     {
         _repository = repository;
         _renderer = renderer;

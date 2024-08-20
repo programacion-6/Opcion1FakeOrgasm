@@ -3,10 +3,10 @@
 public class EntityCreatorByConsole<T> : IEntityCreator<T, string> where T : EntityBase
 {
     private IRepository<T> _repository;
-    private AbstractMessageRenderer _renderer;
+    private IMessageRenderer _renderer;
     private IEntityRequester<T> _requester;
 
-    public EntityCreatorByConsole(IRepository<T> repository, IEntityRequester<T> requester, AbstractMessageRenderer renderer)
+    public EntityCreatorByConsole(IRepository<T> repository, IEntityRequester<T> requester, IMessageRenderer renderer)
     {
         _repository = repository;
         _requester = requester;

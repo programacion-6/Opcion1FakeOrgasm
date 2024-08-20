@@ -4,11 +4,11 @@ public class AppControllerAsText : IAppController
 {
     private AbstractViewChanger<string> _viewChanger;
     private IReceiver<string> _receiver;
-    private AbstractMessageRenderer _messageRenderer;
+    private IMessageRenderer _messageRenderer;
     private IExecutableHandler<string>? currentHandler;
     private readonly Dictionary<MenuView, IExecutableHandler<string>> _controllers;
 
-    public AppControllerAsText(AbstractViewChanger<string> viewChanger, IReceiver<string> receiver, Dictionary<MenuView, IExecutableHandler<string>> controllers, AbstractMessageRenderer messageRenderer)
+    public AppControllerAsText(AbstractViewChanger<string> viewChanger, IReceiver<string> receiver, Dictionary<MenuView, IExecutableHandler<string>> controllers, IMessageRenderer messageRenderer)
     {
         _viewChanger = viewChanger;
         _controllers = controllers;

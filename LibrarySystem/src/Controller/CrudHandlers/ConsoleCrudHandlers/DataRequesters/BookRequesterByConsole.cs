@@ -2,10 +2,10 @@
 
 public class BookRequesterByConsole : IEntityRequester<Book>
 {
-    private AbstractMessageRenderer _renderer;
+    private IMessageRenderer _renderer;
     private IReceiver<string> _receiver;
 
-    public BookRequesterByConsole(AbstractMessageRenderer renderer, IReceiver<string> receiver)
+    public BookRequesterByConsole(IMessageRenderer renderer, IReceiver<string> receiver)
     {
         _renderer = renderer;
         _receiver = receiver;

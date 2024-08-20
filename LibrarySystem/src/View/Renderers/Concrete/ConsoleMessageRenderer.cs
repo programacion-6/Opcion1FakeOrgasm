@@ -1,43 +1,39 @@
 namespace LibrarySystem;
 
-public class ConsoleMessageRenderer : AbstractMessageRenderer
+public class ConsoleMessageRenderer : IMessageRenderer
 {
-    public ConsoleMessageRenderer(IViewRenderer<string> renderer) : base(renderer)
+    public void RenderSimpleMessage(string message)
     {
+        Console.WriteLine(message);
     }
 
-    public override void RenderSimpleMessage(string message)
-    {
-        _renderer.Render(message);
-    }
-
-    public override void RenderErrorMessage(string message)
+    public void RenderErrorMessage(string message)
     {
         var noFoundMessage = ConsoleFormatter.AsAnError(message);
-        _renderer.Render(noFoundMessage);
+        Console.WriteLine(noFoundMessage);
     }
 
-    public override void RenderHighlightMessage(string message)
+    public void RenderHighlightMessage(string message)
     {
         var highlightMessage = ConsoleFormatter.AsAHighlight(message);
-        _renderer.Render(highlightMessage);
+        Console.WriteLine(highlightMessage);
     }
 
-    public override void RenderIndicatorMessage(string message)
+    public void RenderIndicatorMessage(string message)
     {
         var indicatorMessage = ConsoleFormatter.AsIndicator(message);
-        _renderer.Render(indicatorMessage);
+        Console.WriteLine(indicatorMessage);
     }
 
-    public override void RenderInfoMessage(string message)
+    public void RenderInfoMessage(string message)
     {
         var infoMessage = ConsoleFormatter.AsAnInfo(message);
-        _renderer.Render(infoMessage);
+        Console.WriteLine(infoMessage);
     }
 
-    public override void RenderSuccessMessage(string message)
+    public void RenderSuccessMessage(string message)
     {
         var successMessage = ConsoleFormatter.AsSuccess(message);
-        _renderer.Render(successMessage);
+        Console.WriteLine(successMessage);
     }
 }

@@ -8,9 +8,9 @@ public class BookControllerAsText : IExecutableHandler<string>
     private IEntityUpdater<Book, string> _bookUpdater;
     private IEntityEliminator<Book, string> _bookEliminator;
     private IMessageRenderer _messageRenderer;
-    private RendererResultsAsText<Book> _rendererBooks;
+    private IResultRenderer<Book> _rendererBooks;
 
-    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, RendererResultsAsText<Book> rendererBooks, IReceiver<string> receiver, IMessageRenderer messageRenderer)
+    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, IResultRenderer<Book> rendererBooks, IReceiver<string> receiver, IMessageRenderer messageRenderer)
     {
         _repository = repository;
         _bookCreator = bookCreator;

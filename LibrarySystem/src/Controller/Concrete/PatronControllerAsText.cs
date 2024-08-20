@@ -8,9 +8,9 @@ public class PatronControllerAsText : IExecutableHandler<string>
     private IEntityUpdater<Patron, string> _patronUpdater;
     private IEntityEliminator<Patron, string> _patronEliminator;
     private IMessageRenderer _messageRenderer;
-    private RendererResultsAsText<Patron> _patronRenderer;
+    private IResultRenderer<Patron> _patronRenderer;
 
-    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, IMessageRenderer messageRenderer, RendererResultsAsText<Patron> patronRenderer)
+    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, IMessageRenderer messageRenderer, IResultRenderer<Patron> patronRenderer)
     {
         _repository = repository;
         _patronCreator = patronCreator;

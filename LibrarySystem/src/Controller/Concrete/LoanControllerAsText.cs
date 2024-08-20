@@ -68,7 +68,10 @@ public class LoanControllerAsText : IExecutableHandler<string>
     private void ReturnBook()
     {
         var activeLoans = _loanRepository.GetCurrentlyLoans();
-        var patrons = activeLoans.Select(loan => loan.Patron).ToList();
+        var patrons = activeLoans.Select(loan => loan.Patron)
+                                    .GroupBy(patron => patron.Id)
+                                    .Select(group => group.First())
+                                    .ToList();
         var patron = _patronSelector.TryToSelectAtLeastOne(patrons);
 
         if (patron is not null)
@@ -90,8 +93,12 @@ public class LoanControllerAsText : IExecutableHandler<string>
 
     private void LendBook()
     {
-        var borrowedBooks = _loanRepository.GetCurrentlyLoans().Select(loan => loan.Book).ToList();
-        var booksAvailable = _bookRepository.GetAll().Where(book => !borrowedBooks.Contains(book)).ToList();
+        var borrowedBooksIds = _loanRepository.GetCurrentlyLoans()
+                                            .Select(loan => loan.Book.Id)
+                                            .ToList();
+        var booksAvailable = _bookRepository.GetAll()
+                            .Where(book => !borrowedBooksIds.Contains(book.Id))
+                            .ToList();
         var book = _bookSelector.TryToSelectAtLeastOne(booksAvailable);
 
         var allPatrons = _patronRepository.GetAll();

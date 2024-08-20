@@ -6,13 +6,13 @@ public class ReporterControllerAsText : IExecutableHandler<string>
     private StatisticsGenerator _statisticsGenerator;
     private IPatronRepository _patronRepository;
     private IMessageRenderer _messageRenderer;
-    private RendererResultsAsText<Book> _bookRenderer;
-    private RendererResultsAsText<Patron> _patronRenderer;
-    private RendererResultsAsText<Loan> _loanRenderer;
+    private IResultRenderer<Book> _bookRenderer;
+    private IResultRenderer<Patron> _patronRenderer;
+    private IResultRenderer<Loan> _loanRenderer;
     private EntitySelectorByConsole<Patron> _patronSelector;
 
 
-    public ReporterControllerAsText(Reporter reporter, StatisticsGenerator statisticsGenerator, IPatronRepository patronRepository, RendererResultsAsText<Book> bookRenderer, RendererResultsAsText<Patron> patronRenderer, RendererResultsAsText<Loan> loanRenderer, IMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector)
+    public ReporterControllerAsText(Reporter reporter, StatisticsGenerator statisticsGenerator, IPatronRepository patronRepository, IResultRenderer<Book> bookRenderer, IResultRenderer<Patron> patronRenderer, IResultRenderer<Loan> loanRenderer, IMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector)
     {
         _reporter = reporter;
         _statisticsGenerator = statisticsGenerator;

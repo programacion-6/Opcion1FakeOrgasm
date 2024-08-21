@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Folder Include="src/Controller/" />
+    <Folder Include="src/Controller/Concrete/" />
+    <Folder Include="src/Controller/CrudHandlers/" />
+    <Folder Include="src/Controller/CrudHandlers/ConsoleCrudHandlers/" />
+    <Folder Include="src/Controller/CrudHandlers/ConsoleCrudHandlers/DataRequesters/" />
+    <Folder Include="src/Controller/CrudHandlers/Interfaces/" />
+    <Folder Include="src/Controller/Interfaces/" />
+    <Folder Include="src/Model/Models/" />
+    <Folder Include="src/Model/Repositories/" />
+    <Folder Include="src/Model/Repositories/Abstractions/" />
+    <Folder Include="src/Model/Repositories/Concrete/" />
+    <Folder Include="src/Model/Services/" />
+    <Folder Include="src/Model/Validators/" />
+    <Folder Include="src/Model/Validators/Exceptions/" />
+    <Folder Include="src/View/Receivers/" />
+    <Folder Include="src/View/Renderers/" />
+    <Folder Include="src/View/Renderers/Concrete/" />
+    <Folder Include="src/View/Renderers/Interfaces/" />
+    <Folder Include="src/View/Utils/" />
+    <Folder Include="src/View/ViewChangers/" />
+  </ItemGroup>
+
+</Project>

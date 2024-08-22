@@ -65,7 +65,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
         return wasFound;
     }
 
-        private void ReturnBook()
+    private void ReturnBook()
     {
         var patron = SelectPatronForReturn();
         if (patron != null)
@@ -108,48 +108,66 @@ public class LoanControllerAsText : IExecutableHandler<string>
 
     private void LendBook()
     {
-        var borrowedBooksIds = _loanRepository.GetCurrentlyLoans()
-                                            .Select(loan => loan.Book.Id)
-                                            .ToList();
-        var booksAvailable = _bookRepository.GetAll()
-                            .Where(book => !borrowedBooksIds.Contains(book.Id))
-                            .ToList();
-        var book = _bookSelector.TryToSelectAtLeastOne(booksAvailable);
-
-        var allPatrons = _patronRepository.GetAll();
-        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons);
-        var isValidToLoan = TheBookWasFound(book) && ThePatronWasFound(patron);
-
-        if (isValidToLoan)
+        var book = SelectBookToLend();
+        if (book != null)
         {
-            try
+            var patron = SelectPatronForLending();
+            if (patron != null)
             {
-                _messageRenderer.RenderSimpleMessage("enter the days of loan:");
-
-                int loanTimeInDays;
-                string loanTimeInput;
-                bool isValidTime;
-                do
+                if (IsValidLoan(book, patron, out int loanTimeInDays))
                 {
-                    loanTimeInput = _receiver.ReceiveInput();
-                    isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
-                    if (!isValidTime)
-                    {
-                        _messageRenderer.RenderErrorMessage("enter a number plase");
-                    }
-                } while (!isValidTime);
-
-#pragma warning disable CS8604
-                _lender.LendBook(book, patron, loanTimeInDays);
-#pragma warning restore CS8604
-                _messageRenderer.RenderSuccessMessage("successful loan");
-
+                    TryToLendBook(book, patron, loanTimeInDays);
+                }
             }
-            catch (Exception ex)
+        }
+    }
+
+    private Book? SelectBookToLend()
+    {
+        var borrowedBooksIds = _loanRepository.GetCurrentlyLoans()
+                                              .Select(loan => loan.Book.Id)
+                                              .ToList();
+        var booksAvailable = _bookRepository.GetAll()
+                                            .Where(book => !borrowedBooksIds.Contains(book.Id))
+                                            .ToList();
+        return _bookSelector.TryToSelectAtLeastOne(booksAvailable);
+    }
+
+    private Patron? SelectPatronForLending()
+    {
+        var allPatrons = _patronRepository.GetAll();
+        return _patronSelector.TryToSelectAtLeastOne(allPatrons);
+    }
+
+    private bool IsValidLoan(Book book, Patron patron, out int loanTimeInDays)
+    {
+        _messageRenderer.RenderSimpleMessage("enter the days of loan:");
+        string loanTimeInput;
+        bool isValidTime;
+
+        do
+        {
+            loanTimeInput = _receiver.ReceiveInput();
+            isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
+            if (!isValidTime)
             {
-                _messageRenderer.RenderErrorMessage(ex.Message);
-
+                _messageRenderer.RenderErrorMessage("enter a number please");
             }
+        } while (!isValidTime);
+
+        return TheBookWasFound(book) && ThePatronWasFound(patron);
+    }
+
+    private void TryToLendBook(Book book, Patron patron, int loanTimeInDays)
+    {
+        try
+        {
+            _lender.LendBook(book, patron, loanTimeInDays);
+            _messageRenderer.RenderSuccessMessage("successful loan");
+        }
+        catch (Exception ex)
+        {
+            _messageRenderer.RenderErrorMessage(ex.Message);
         }
     }
 

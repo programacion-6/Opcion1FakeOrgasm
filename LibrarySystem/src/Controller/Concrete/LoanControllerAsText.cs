@@ -130,6 +130,10 @@ public class LoanControllerAsText : IExecutableHandler<string>
                 _messageRenderer.RenderSuccessMessage("successful loan");
 
             }
+            catch (LoanException ex)
+            {
+                _messageRenderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
+            }
             catch (Exception ex)
             {
                 _messageRenderer.RenderErrorMessage(ex.Message);

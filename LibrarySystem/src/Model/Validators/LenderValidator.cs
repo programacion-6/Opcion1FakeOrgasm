@@ -21,12 +21,20 @@ public class LenderValidator
     {
         if (loanTimeInDays < MIN_LOAN_TIME)
         {
-            throw new LoanException($"The loan period must be {MIN_LOAN_TIME} or more days");
+            throw new LoanException(
+                $"The loan period must be {MIN_LOAN_TIME} or more days",
+                SeverityLevel.Medium,
+                $"The loan period specified ({loanTimeInDays} days) is too short. " +
+                $"Please ensure the loan period is at least {MIN_LOAN_TIME} day(s) to meet the minimum borrowing requirements.");
         }
 
         if (loanTimeInDays > MAX_LOAN_TIME)
         {
-            throw new LoanException($"The loan period cannot be longer than {MAX_LOAN_TIME} days.");
+            throw new LoanException(
+                $"The loan period cannot be longer than {MAX_LOAN_TIME} days.",
+                SeverityLevel.Medium,
+                $"The loan period specified ({loanTimeInDays} days) exceeds the maximum allowed duration of {MAX_LOAN_TIME} days. " +
+                $"Adjust the loan period to a duration within the acceptable range.");
         }
     }
 }

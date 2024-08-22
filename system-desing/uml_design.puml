@@ -108,21 +108,40 @@ package "MODEL" {
     package "validators" {
 
         package "exceptions" {
-            class BookException {
-                +BookException(string message)
+            enum SeverityLevel {
+                <<enumeration>>
+                Low
+                Medium
+                High
+                Critical
             }
 
-            class LoanException {
-                +LoanException(string message)
+            package "concrete exceptions" {
+                class BookException {
+                    +BookException(string message, SeverityLevel severity = SeverityLevel.Medium, string resolutionSuggestion = "")
+                }
+
+                class LoanException {
+                    +LoanException(string message, SeverityLevel severity = SeverityLevel.Medium, string resolutionSuggestion = "")
+                }
+
+                class PatronException {
+                    +PatronException(string message, SeverityLevel severity = SeverityLevel.Medium, string resolutionSuggestion = "")
+                }
             }
 
-            class PatronException {
-                +PatronException(string message)
+            class CustomException {
+                +Severity: SeverityLevel
+                +ResolutionSuggestion: string
+                +CustomException(string message, SeverityLevel severity, string resolutionSuggestion)
             }
 
-            Exception <|-- BookException
-            Exception <|-- LoanException
-            Exception <|-- PatronException
+            Exception <|-- CustomException
+            CustomException <|-- BookException
+            CustomException <|-- LoanException
+            CustomException <|-- PatronException
+
+            SeverityLevel <-- CustomException : uses
         }
 
         class BookValidator <<static>> {

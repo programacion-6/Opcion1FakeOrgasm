@@ -28,6 +28,15 @@ public static class PatronValidator
                 "A patron's name is essential for identification. " +
                 "Ensure that a valid name is provided, and it should not be left blank or contain only whitespace.");
         }
+
+        if (!name.All(char.IsLetter))
+        {
+            throw new PatronException(
+                "Name must contain only letters",
+                SeverityLevel.Medium,
+                "The patron's name should consist of alphabetic characters only. " +
+                "Please verify the name and ensure it does not contain any special characters or numbers.");
+        }
     }
 
     private static void ValidateMembershipNumber(int membershipNumber)

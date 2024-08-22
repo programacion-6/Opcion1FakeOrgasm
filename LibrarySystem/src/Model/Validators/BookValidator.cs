@@ -44,6 +44,15 @@ public class BookValidator
                 "The author's name is required for proper identification of the book. " +
                 "Please provide a valid author's name, ensuring that it is not empty or composed solely of whitespace.");
         }
+
+        if (!author.All(char.IsLetter))
+        {
+            throw new BookException(
+                "Author name must contain only letters.",
+                SeverityLevel.Medium,
+                "The author's name should consist of alphabetic characters only. " +
+                "Please verify the author's name and ensure it does not contain any special characters or numbers.");
+        }
     }
 
     private void ValidateISBN(string isbn)
@@ -77,6 +86,15 @@ public class BookValidator
                 SeverityLevel.Medium,
                 "The genre field is important for classifying the book. " +
                 "Ensure that a valid genre is provided, and it should not be an empty or whitespace-only string.");
+        }
+
+        if (!genre.All(char.IsLetter))
+        {
+            throw new BookException(
+                "Genre must contain only letters.",
+                SeverityLevel.Medium,
+                "The genre field should consist of alphabetic characters only. " +
+                "Please verify the genre field and ensure it does not contain any special characters or numbers");
         }
     }
 

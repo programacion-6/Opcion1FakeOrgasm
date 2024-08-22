@@ -65,29 +65,44 @@ public class LoanControllerAsText : IExecutableHandler<string>
         return wasFound;
     }
 
-    private void ReturnBook()
+        private void ReturnBook()
+    {
+        var patron = SelectPatronForReturn();
+        if (patron != null)
+        {
+            var bookSelected = SelectBookForReturn(patron);
+            if (bookSelected != null)
+            {
+                ReturnSelectedBook(patron, bookSelected);
+            }
+        }
+    }
+
+    private Patron? SelectPatronForReturn()
     {
         var activeLoans = _loanRepository.GetCurrentlyLoans();
         var patrons = activeLoans.Select(loan => loan.Patron)
-                                    .GroupBy(patron => patron.Id)
-                                    .Select(group => group.First())
-                                    .ToList();
-        var patron = _patronSelector.TryToSelectAtLeastOne(patrons);
+                                 .GroupBy(patron => patron.Id)
+                                 .Select(group => group.First())
+                                 .ToList();
+        return _patronSelector.TryToSelectAtLeastOne(patrons);
+    }
 
-        if (patron is not null)
+    private Book? SelectBookForReturn(Patron patron)
+    {
+        var patronLoans = _loanRepository.GetActiveLoansByPatron(patron);
+        var borrowedBooks = patronLoans.Select(loan => loan.Book).ToList();
+        return _bookSelector.TryToSelectAtLeastOne(borrowedBooks);
+    }
+
+    private void ReturnSelectedBook(Patron patron, Book bookSelected)
+    {
+        var loanSelected = _loanRepository.GetActiveLoansByPatron(patron)
+                                          .FirstOrDefault(loan => loan.Book.Id == bookSelected.Id);
+        if (loanSelected != null)
         {
-            var patronLoans = _loanRepository.GetActiveLoansByPatron(patron);
-            var borrowedBooks = patronLoans.Select(loan => loan.Book).ToList();
-            var bookSelected = _bookSelector.TryToSelectAtLeastOne(borrowedBooks);
-            if (bookSelected is not null)
-            {
-                var loanSelected = patronLoans.FirstOrDefault(loan => loan.Book.Id == bookSelected.Id);
-#pragma warning disable CS8604
-                _lender.ReturnBook(loanSelected);
-#pragma warning restore CS8604
-                _messageRenderer.RenderSuccessMessage("returned book");
-
-            }
+            _lender.ReturnBook(loanSelected);
+            _messageRenderer.RenderSuccessMessage("returned book");
         }
     }
 

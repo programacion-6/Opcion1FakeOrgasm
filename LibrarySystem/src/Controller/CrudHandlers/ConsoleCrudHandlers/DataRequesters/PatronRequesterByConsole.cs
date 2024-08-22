@@ -22,9 +22,9 @@ public class PatronRequesterByConsole : IEntityRequester<Patron>
             PatronValidator.ValidatePatron(patronToValidate);
             requestedPatron = patronToValidate;
         }
-        catch (BookException ex)
+        catch (PatronException ex)
         {
-            _renderer.RenderErrorMessage(ex.Message);
+            _renderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)
         {

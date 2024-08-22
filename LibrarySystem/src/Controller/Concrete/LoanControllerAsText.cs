@@ -108,21 +108,17 @@ public class LoanControllerAsText : IExecutableHandler<string>
 
     private void LendBook()
     {
-        var book = SelectBookToLend();
-        if (book != null)
+        var book = SelectAvailableBook();
+        var patron = SelectPatron();
+        var isValidToLoan = ValidateLoanEligibility(book, patron);
+
+        if (isValidToLoan)
         {
-            var patron = SelectPatronForLending();
-            if (patron != null)
-            {
-                if (IsValidLoan(book, patron, out int loanTimeInDays))
-                {
-                    TryToLendBook(book, patron, loanTimeInDays);
-                }
-            }
+            ProcessLoan(book, patron);
         }
     }
 
-    private Book? SelectBookToLend()
+    private Book SelectAvailableBook()
     {
         var borrowedBooksIds = _loanRepository.GetCurrentlyLoans()
                                               .Select(loan => loan.Book.Id)
@@ -130,40 +126,33 @@ public class LoanControllerAsText : IExecutableHandler<string>
         var booksAvailable = _bookRepository.GetAll()
                                             .Where(book => !borrowedBooksIds.Contains(book.Id))
                                             .ToList();
+                                            
         return _bookSelector.TryToSelectAtLeastOne(booksAvailable);
     }
 
-    private Patron? SelectPatronForLending()
+    private Patron SelectPatron()
     {
         var allPatrons = _patronRepository.GetAll();
+
         return _patronSelector.TryToSelectAtLeastOne(allPatrons);
     }
 
-    private bool IsValidLoan(Book book, Patron patron, out int loanTimeInDays)
+    private bool ValidateLoanEligibility(Book book, Patron patron)
     {
-        _messageRenderer.RenderSimpleMessage("enter the days of loan:");
-        string loanTimeInput;
-        bool isValidTime;
-
-        do
-        {
-            loanTimeInput = _receiver.ReceiveInput();
-            isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
-            if (!isValidTime)
-            {
-                _messageRenderer.RenderErrorMessage("enter a number please");
-            }
-        } while (!isValidTime);
-
         return TheBookWasFound(book) && ThePatronWasFound(patron);
     }
 
-    private void TryToLendBook(Book book, Patron patron, int loanTimeInDays)
+    private void ProcessLoan(Book book, Patron patron)
     {
         try
         {
+            int loanTimeInDays = GetLoanTimeInDays();
             _lender.LendBook(book, patron, loanTimeInDays);
             _messageRenderer.RenderSuccessMessage("successful loan");
+        }
+        catch (LoanException ex)
+        {
+            _messageRenderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)
         {
@@ -171,4 +160,22 @@ public class LoanControllerAsText : IExecutableHandler<string>
         }
     }
 
+    private int GetLoanTimeInDays()
+    {
+        _messageRenderer.RenderSimpleMessage("enter the days of loan:");
+        int loanTimeInDays;
+        string loanTimeInput;
+        bool isValidTime;
+        do
+        {
+            loanTimeInput = _receiver.ReceiveInput();
+            isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
+            if (!isValidTime)
+            {
+                _messageRenderer.RenderErrorMessage("enter a number plase");
+            }
+        } while (!isValidTime);
+
+        return loanTimeInDays;
+    }
 }

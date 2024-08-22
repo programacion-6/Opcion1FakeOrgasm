@@ -24,7 +24,7 @@ public class BookRequesterByConsole : IEntityRequester<Book>
         }
         catch (BookException ex)
         {
-            _renderer.RenderErrorMessage($"{ex.Message} \n\t...{ex.ResolutionSuggestion}");
+            _renderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)
         {

@@ -1,9 +1,9 @@
 ﻿namespace LibrarySystem;
 
-public class LoanException : Exception
+public class LoanException : CustomException
 {
-    public LoanException(string message)
-            : base(message)
+    public LoanException(string message, SeverityLevel severity = SeverityLevel.Medium, string resolutionSuggestion = "")
+            : base(message, severity, resolutionSuggestion)
     {
     }
 }

@@ -2,9 +2,9 @@
 
 namespace LibrarySystem;
 
-public static class BookValidator
+public class BookValidator
 {
-    public static void ValidateBook(Book book)
+    public void ValidateBook(Book book)
     {
         if (book == null)
         {
@@ -14,10 +14,11 @@ public static class BookValidator
         ValidateTitle(book.Title);
         ValidateAuthor(book.Author);
         ValidateISBN(book.ISBN);
+        ValidateGenreBook(book.Genre);
         ValidatePublicationYear(book.PublicationYear);
     }
 
-    private static void ValidateTitle(string title)
+    private void ValidateTitle(string title)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -25,7 +26,7 @@ public static class BookValidator
         }
     }
 
-    private static void ValidateAuthor(string author)
+    private void ValidateAuthor(string author)
     {
         if (string.IsNullOrWhiteSpace(author))
         {
@@ -33,7 +34,7 @@ public static class BookValidator
         }
     }
 
-    private static void ValidateISBN(string isbn)
+    private void ValidateISBN(string isbn)
     {
         if (string.IsNullOrWhiteSpace(isbn))
         {
@@ -47,7 +48,15 @@ public static class BookValidator
         }
     }
 
-    private static void ValidatePublicationYear(int year)
+    private void ValidateGenreBook(string genre)
+    {
+        if (string.IsNullOrWhiteSpace(genre))
+        {
+            throw new BookException("Genre cannot be null, empty, or whitespace");
+        }
+    }
+
+    private void ValidatePublicationYear(int year)
     {
         if (year < 0)
         {

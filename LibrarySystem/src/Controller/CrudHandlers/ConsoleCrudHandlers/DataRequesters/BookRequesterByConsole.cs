@@ -4,11 +4,13 @@ public class BookRequesterByConsole : IEntityRequester<Book>
 {
     private IMessageRenderer _renderer;
     private IReceiver<string> _receiver;
+    private BookValidator _bookValidator;
 
     public BookRequesterByConsole(IMessageRenderer renderer, IReceiver<string> receiver)
     {
         _renderer = renderer;
         _receiver = receiver;
+        _bookValidator = new BookValidator();
     }
 
     public Book? AskForEntity()
@@ -17,7 +19,7 @@ public class BookRequesterByConsole : IEntityRequester<Book>
         try
         {
             var bookToValidate = ReceiveBookByConsole();
-            BookValidator.ValidateBook(bookToValidate);
+            _bookValidator.ValidateBook(bookToValidate);
             requestedBook = bookToValidate;
         }
         catch (BookException ex)

@@ -21,7 +21,7 @@ The analysis was divided into the following requirements:
 
 This analysis was based on the Requirements Diagram shown below:
 
-![Requirements-Diagram](DiagramRequirements\Requirements.jpeg)
+![Requirements-Diagram](/DiagramRequirements/Requirements.jpeg)
 
 ---
 ## How to use?

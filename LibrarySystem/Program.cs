@@ -8,21 +8,21 @@ class Program
         IMessageRenderer messageRenderer = new ConsoleMessageRenderer();
         AbstractViewChanger<string> viewChanger = new ConsoleViewChanger();
 
-        IResultRenderer<Book> bookRenderer = new ConsoleBookRenderer();
-        IResultRenderer<Patron> patronRenderer = new ConsolePatronRenderer();
-        IResultRenderer<Fine> fineRenderer = new ConsoleFineRenderer();
-        IResultRenderer<Loan> loanRenderer = new ConsoleLoanRenderer();
-
         IBookRepository bookRepository = new BookRepository();
         IPatronRepository patronRepository = new PatronRepository();
         ILoanRepository loanRepository = new LoanRepository();
         IFineRepository fineRepository = new FineRepository();
 
+        IResultRenderer<Book> bookRenderer = new ConsoleBookRenderer();
+        IResultRenderer<Patron> patronRenderer = new ConsolePatronRenderer();
+        IResultRenderer<Fine> fineRenderer = new ConsoleFineRenderer();
+        IResultRenderer<Loan> loanRenderer = new ConsoleLoanRenderer(bookRepository, patronRepository);
+
         LenderValidator lenderValidator = new LenderValidator(fineRepository);
         Lender lender = new Lender(loanRepository, lenderValidator);
         DebtManager debtManager = new DebtManager(loanRepository, fineRepository);
-        Reporter reporter = new Reporter(loanRepository);
-        StatisticsGenerator statisticsGenerator = new StatisticsGenerator(loanRepository, fineRepository);
+        Reporter reporter = new Reporter(loanRepository, bookRepository, patronRepository);
+        StatisticsGenerator statisticsGenerator = new StatisticsGenerator(loanRepository, fineRepository, bookRepository, patronRepository);
 
         IEntityRequester<Book> bookRequester = new BookRequesterByConsole(messageRenderer, receiver);
         IEntityRequester<Patron> patronRequester = new PatronRequesterByConsole(receiver, messageRenderer);
@@ -108,7 +108,7 @@ class Program
         }
 
         var borrowedBooksIds = loanRepository.GetCurrentlyLoans()
-                                            .Select(loan => loan.Book.Id)
+                                            .Select(loan => loan.IdBook)
                                             .ToList();
         var unloanedBooks = bookRepository.GetAll()
                             .Where(book => !borrowedBooksIds.Contains(book.Id))
@@ -126,8 +126,8 @@ class Program
             var loan = new Loan
             {
                 Id = Guid.NewGuid(),
-                Book = book,
-                Patron = patron,
+                IdBook = book.Id,
+                IdPatron = patron.Id,
                 LoanDate = loanDate,
                 ReturnDate = returnDate
             };

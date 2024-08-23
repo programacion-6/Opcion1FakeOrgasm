@@ -91,7 +91,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
             {
                 var loanSelected = patronLoans.FirstOrDefault(loan => loan.BookId == bookSelected.Id);
 #pragma warning disable CS8604
-                _lender.ReturnBook(loanSelected);
+                await _lender.ReturnBook(loanSelected);
 #pragma warning restore CS8604
                 _messageRenderer.RenderSuccessMessage("returned book");
 
@@ -108,7 +108,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
         var booksAvailable = (await _bookRepository.GetAll())
                                 .Where(book => !borrowedBooksIds.Contains(book.Id))
                                 .ToList();
-                                
+
         var book = _bookSelector.TryToSelectAtLeastOne(booksAvailable);
 
         var allPatrons = await _patronRepository.GetAll();
@@ -135,7 +135,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
                 } while (!isValidTime);
 
 #pragma warning disable CS8604
-                _lender.LendBook(book, patron, loanTimeInDays);
+                await _lender.LendBook(book, patron, loanTimeInDays);
 #pragma warning restore CS8604
                 _messageRenderer.RenderSuccessMessage("successful loan");
 

@@ -11,9 +11,9 @@ public class LenderValidator
         this.fineRepository = fineRepository;
     }
 
-    public bool HasFine(Patron patron)
+    public async Task<bool> HasFine(Patron patron)
     {
-        var activeFines = fineRepository.GetFinesByPatron(patron).Where(fine => !fine.WasPayed);
+        var activeFines = (await fineRepository.GetFinesByPatron(patron.Id)).Where(fine => !fine.WasPayed);
         return activeFines.Any();
     }
 

@@ -7,12 +7,4 @@ public class Loan : EntityBase
     public DateTime LoanDate { get; set; } = DateTime.Now;
     public required DateTime ReturnDate { get; set; }
     public bool WasReturn { get; set; } = false;
-
-    public override string ToString()
-    {
-        return "Loan " + (WasReturn ? "returned" : "active") + " | "
-            + LoanDate + " - " + ReturnDate
-            + "\n\tBook: " + Book.Title
-             + "\n\tPatron: " + Patron.Name;
-    }
 }

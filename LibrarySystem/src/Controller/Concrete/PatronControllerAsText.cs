@@ -52,7 +52,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
     private async Task ShowAll()
     {
         var allPatrons = await _repository.GetAll();
-        RenderPatronsFound(allPatrons.ToList());
+        await RenderVerbosePatronsFormatted(allPatrons.ToList());
     }
 
     private async Task FindPatronByName()
@@ -60,7 +60,8 @@ public class PatronControllerAsText : IExecutableHandler<string>
         _messageRenderer.RenderSimpleMessage("Enter the name:");
         var name = _receiver.ReceiveInput();
         var patronFound = await _repository.GetByName(name);
-        RenderPatronFound(patronFound);
+        var bookFormated = await _patronFormatterFactory.CreateVerboseFormatter(patronFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
     private async Task FindPatronByMembershipNumber()
@@ -72,29 +73,16 @@ public class PatronControllerAsText : IExecutableHandler<string>
             _messageRenderer.RenderErrorMessage("invalid input");
         }
         var patronFound = await _repository.GetByMembershipNumber(membershipNumber);
-        RenderPatronFound(patronFound);
+        var bookFormated = await _patronFormatterFactory.CreateVerboseFormatter(patronFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
-    private void RenderPatronFound(Patron? bookFound)
+    private async Task RenderVerbosePatronsFormatted(List<Patron> patrons)
     {
-        if (bookFound is not null)
-        {
-            var bookFormated = _patronFormatterFactory.CreateFormatter(bookFound, FormatType.Detailed);
-            ResultRenderer.RenderResult(bookFormated);
-        }
-        else
-        {
-            ResultRenderer.RenderResult(bookFound);
-        }
-    }
-
-    private void RenderPatronsFound(List<Patron> booksFound)
-    {
-        var booksFormated = booksFound.Select
-            (book => _patronFormatterFactory
-                    .CreateFormatter(book, FormatType.Simple))
-                    .ToList();
-        ResultRenderer.RenderResults(booksFormated);
+        var patronsFormated = await Task.WhenAll(patrons.Select(async patron =>
+                                    await _patronFormatterFactory
+                                    .CreateVerboseFormatter(patron)));
+        ResultRenderer.RenderResults(patronsFormated.ToList());
     }
 
 }

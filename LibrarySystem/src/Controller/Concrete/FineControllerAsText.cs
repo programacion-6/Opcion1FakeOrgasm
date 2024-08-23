@@ -42,19 +42,19 @@ public class FineControllerAsText : IExecutableHandler<string>
     private async Task ShowFines()
     {
         var fines = await _fineRepository.GetAll();
-        RenderFinesFound(fines.ToList());
+        await RenderVerboseFinesFormatted(fines.ToList());
     }
 
     private async Task ShowActiveFines()
     {
         var fines = await _fineRepository.GetActiveFines();
-        RenderFinesFound(fines.ToList());
+        await RenderVerboseFinesFormatted(fines.ToList());
     }
 
     private async Task MarkAsPaid()
     {
         var activeFines = await _fineRepository.GetActiveFines();
-        Fine? fine = _fineSelector.TryToSelectAtLeastOne(activeFines.ToList());
+        Fine? fine = await _fineSelector.TryToSelectAtLeastOne(activeFines.ToList());
         if (fine is not null)
         {
             await _debtManager.MarkAsPaid(fine);
@@ -62,12 +62,12 @@ public class FineControllerAsText : IExecutableHandler<string>
         }
     }
 
-    private void RenderFinesFound(List<Fine> finesFound)
+    private async Task RenderVerboseFinesFormatted(List<Fine> fines)
     {
-        var finesFormatted = finesFound.Select
-            (book => _fineFormatterFactory
-                    .CreateFormatter(book, FormatType.Simple))
-                    .ToList();
-        ResultRenderer.RenderResults(finesFormatted);
+        var finesFormatted = await Task.WhenAll(fines.Select(async fine =>
+                                    await _fineFormatterFactory
+                                    .CreateVerboseFormatter(fine)));
+
+        ResultRenderer.RenderResults(finesFormatted.ToList());
     }
 }

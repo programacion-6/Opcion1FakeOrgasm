@@ -59,7 +59,7 @@ public class BookControllerAsText : IExecutableHandler<string>
     private async Task ShowAll()
     {
         var allBooks = await _repository.GetAll();
-        RenderBooksFound(allBooks.ToList());
+        await RenderVerboseBooksFormatted(allBooks.ToList());
     }
 
     private async Task FindBooksByGenre()
@@ -67,7 +67,7 @@ public class BookControllerAsText : IExecutableHandler<string>
         _messageRenderer.RenderSimpleMessage("Enter the genre:");
         var genre = _receiver.ReceiveInput();
         var booksFound = await _repository.GetBooksByGenre(genre);
-        RenderBooksFound(booksFound.ToList());
+        await RenderVerboseBooksFormatted(booksFound.ToList());
     }
 
     private async Task FindBookByTitle()
@@ -75,7 +75,8 @@ public class BookControllerAsText : IExecutableHandler<string>
         _messageRenderer.RenderSimpleMessage("Enter the title:");
         var title = _receiver.ReceiveInput();
         var bookFound = await _repository.GetByTitle(title);
-        RenderBookFound(bookFound);
+        var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
     private async Task FindBookByAuthor()
@@ -83,7 +84,8 @@ public class BookControllerAsText : IExecutableHandler<string>
         _messageRenderer.RenderSimpleMessage("Enter the author:");
         var author = _receiver.ReceiveInput();
         var bookFound = await _repository.GetByAuthor(author);
-        RenderBookFound(bookFound);
+        var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
     private async Task FindBookByISBN()
@@ -91,29 +93,17 @@ public class BookControllerAsText : IExecutableHandler<string>
         _messageRenderer.RenderSimpleMessage("Enter the ISBN:");
         var ISBN = _receiver.ReceiveInput();
         var bookFound = await _repository.GetByISBN(ISBN);
-        RenderBookFound(bookFound);
+        var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
-    private void RenderBookFound(Book? bookFound)
+    private async Task RenderVerboseBooksFormatted(List<Book> books)
     {
-        if (bookFound is not null)
-        {
-            var bookFormated = _bookFormatterFactory.CreateFormatter(bookFound, FormatType.Detailed);
-            ResultRenderer.RenderResult(bookFormated);
-        }
-        else
-        {
-            ResultRenderer.RenderResult(bookFound);
-        }
-    }
+        var booksFormated = await Task.WhenAll(books.Select(async book =>
+                                    await _bookFormatterFactory
+                                    .CreateVerboseFormatter(book)));
 
-    private void RenderBooksFound(List<Book> booksFound)
-    {
-        var booksFormated = booksFound.Select
-            (book => _bookFormatterFactory
-                    .CreateFormatter(book, FormatType.Simple))
-                    .ToList();
-        ResultRenderer.RenderResults(booksFormated);
+        ResultRenderer.RenderResults(booksFormated.ToList());
     }
 
 }

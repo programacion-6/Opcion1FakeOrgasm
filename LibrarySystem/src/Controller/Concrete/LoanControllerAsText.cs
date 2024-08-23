@@ -77,7 +77,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
         var patrons = await Task.WhenAll(patronsIds.Select(async patronId => await _patronRepository.GetById(patronId)));
 
 
-        var patron = _patronSelector.TryToSelectAtLeastOne(patrons.ToList());
+        var patron = await _patronSelector.TryToSelectAtLeastOne(patrons.ToList());
 
         if (patron is not null)
         {
@@ -86,7 +86,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
             var borrowedBooks = await Task.WhenAll(
             patronLoans.Select(async loan => await _bookRepository.GetById(loan.BookId)));
 
-            var bookSelected = _bookSelector.TryToSelectAtLeastOne(borrowedBooks.ToList());
+            var bookSelected = await _bookSelector.TryToSelectAtLeastOne(borrowedBooks.ToList());
             if (bookSelected is not null)
             {
                 var loanSelected = patronLoans.FirstOrDefault(loan => loan.BookId == bookSelected.Id);
@@ -111,10 +111,10 @@ public class LoanControllerAsText : IExecutableHandler<string>
                                 .Where(book => !borrowedBooksIds.Contains(book.Id))
                                 .ToList();
 
-        var book = _bookSelector.TryToSelectAtLeastOne(booksAvailable);
+        var book = await _bookSelector.TryToSelectAtLeastOne(booksAvailable);
         var allPatrons = await _patronRepository.GetAll();
 
-        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
+        var patron = await _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
         var isValidToLoan = TheBookWasFound(book) && ThePatronWasFound(patron);
 
         if (isValidToLoan)

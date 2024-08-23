@@ -61,21 +61,13 @@ public class ReporterControllerAsText : IExecutableHandler<string>
     public async Task ShowOverdueBooks()
     {
         var books = await _reporter.GetOverdueBooks();
-        var booksFormatted = books.Select
-            (book => _bookFormatterFactory
-                    .CreateFormatter(book, FormatType.Simple))
-                    .ToList();
-        ResultRenderer.RenderResults(booksFormatted);
+        RenderSimpleBooksFormatted(books);
     }
 
     public async Task ShowCurrentlyBorrowedBooks()
     {
         var books = await _reporter.GetCurrentlyBorrowedBooks();
-        var booksFormatted = books.Select
-            (book => _bookFormatterFactory
-                    .CreateFormatter(book, FormatType.Simple))
-                    .ToList();
-        ResultRenderer.RenderResults(booksFormatted);
+        RenderSimpleBooksFormatted(books);
     }
 
     public async Task ShowCurrentLoansByPatron()
@@ -84,32 +76,24 @@ public class ReporterControllerAsText : IExecutableHandler<string>
                                 .GroupBy(patron => patron.Id)
                                 .Select(group => group.First())
                                 .ToList();
-        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons);
+        var patron = await _patronSelector.TryToSelectAtLeastOne(allPatrons);
         if (patron is not null)
         {
             var loans = await _reporter.GetLoansByPatron(patron);
-            var loansFormatted = loans.Select
-                    (loan => _loanFormatterFactory
-                            .CreateFormatter(loan, FormatType.Simple))
-                            .ToList();
-            ResultRenderer.RenderResults(loansFormatted);
+            await RenderLoansFormatted(loans);
         }
     }
 
     public async Task ShowLoansByPatron()
     {
         var allPatrons = await _patronRepository.GetAll();
-        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
+        var patron = await _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
         if (patron is not null)
         {
             var loans = await _reporter.GetLoansByPatron(patron);
             if (loans.Any())
             {
-                var loansFormatted = loans.Select
-                        (loan => _loanFormatterFactory
-                            .CreateFormatter(loan, FormatType.Simple))
-                            .ToList();
-                ResultRenderer.RenderResults(loansFormatted);
+                await RenderLoansFormatted(loans);
             }
             else
             {
@@ -121,21 +105,16 @@ public class ReporterControllerAsText : IExecutableHandler<string>
     public async Task ShowMostBorrowedBooks()
     {
         var books = await _statisticsGenerator.GetMostBorrowedBooks();
-        var booksFormatted = books.Select
-            (book => _bookFormatterFactory
-                    .CreateFormatter(book, FormatType.Simple))
-                    .ToList();
-        ResultRenderer.RenderResults(booksFormatted);
+        RenderSimpleBooksFormatted(books);
     }
 
     public async Task ShowMostActivePatrons()
     {
         var patrons = await _statisticsGenerator.GetMostActivePatrons();
-        var patronsFormatted = patrons.Select
-            (patron => _patronFormatterFactory
-                    .CreateFormatter(patron, FormatType.Simple))
-                    .ToList();
-        ResultRenderer.RenderResults(patronsFormatted);
+        var patronsFormated = await Task.WhenAll(patrons.Select(async patron =>
+                                    await _patronFormatterFactory
+                                    .CreateVerboseFormatter(patron)));
+        ResultRenderer.RenderResults(patronsFormated.ToList());
     }
 
     public async Task ShowPatronsFines()
@@ -146,19 +125,37 @@ public class ReporterControllerAsText : IExecutableHandler<string>
             foreach (var tuple in patronsFines)
             {
                 var patron = tuple.Item1;
-                var patronFormatted = _patronFormatterFactory.CreateFormatter(patron, FormatType.Simple);
+                var patronFormatted = await _patronFormatterFactory.CreateVerboseFormatter(patron);
                 var fines = tuple.Item2;
-                var finesFormatted = fines
-                            .Select(fine => _fineFormatterFactory
-                                .CreateFormatter(fine, FormatType.Simple))
-                            .ToList();
-                ResultRenderer.RenderResultWithListOf(patronFormatted, finesFormatted);
+                var finesFormatted = await Task.WhenAll(fines.Select(async loan =>
+                                    await _fineFormatterFactory
+                                    .CreateVerboseFormatter(loan)));
+
+                ResultRenderer.RenderResultWithListOf(patronFormatted, finesFormatted.ToList());
             }
         }
         else
         {
             _messageRenderer.RenderInfoMessage("the patron has no fines");
         }
+    }
+
+    private void RenderSimpleBooksFormatted(List<Book> books)
+    {
+        var booksFormated = books.Select
+            (_bookFormatterFactory
+                    .CreateSimpleFormatter)
+                    .ToList();
+        ResultRenderer.RenderResults(booksFormated);
+    }
+
+    private async Task RenderLoansFormatted(List<Loan> loans)
+    {
+        var loansFormatted = await Task.WhenAll(loans.Select(async loan =>
+                                    await _loanFormatterFactory
+                                    .CreateVerboseFormatter(loan)));
+
+        ResultRenderer.RenderResults(loansFormatted.ToList());
     }
 
 }

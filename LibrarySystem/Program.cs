@@ -13,10 +13,11 @@ class Program
         ILoanRepository loanRepository = new LoanRepository();
         IFineRepository fineRepository = new FineRepository();
 
+        LoanFormatter loanFormatter = new LoanFormatter(loanRepository, bookRepository, patronRepository);
         IResultRenderer<Book> bookRenderer = new ConsoleBookRenderer();
         IResultRenderer<Patron> patronRenderer = new ConsolePatronRenderer();
-        IResultRenderer<Fine> fineRenderer = new ConsoleFineRenderer();
-        IResultRenderer<Loan> loanRenderer = new ConsoleLoanRenderer(bookRepository, patronRepository);
+        IResultRenderer<Fine> fineRenderer = new ConsoleFineRenderer(loanFormatter);
+        IResultRenderer<Loan> loanRenderer = new ConsoleLoanRenderer(loanFormatter);
 
         LenderValidator lenderValidator = new LenderValidator(fineRepository);
         Lender lender = new Lender(loanRepository, lenderValidator);
@@ -142,7 +143,7 @@ class Program
                 var fine = new Fine
                 {
                     Id = Guid.NewGuid(),
-                    Loan = loan,
+                    IdLoan = loan.Id,
                     FineAmount = fineAmount
                 };
 

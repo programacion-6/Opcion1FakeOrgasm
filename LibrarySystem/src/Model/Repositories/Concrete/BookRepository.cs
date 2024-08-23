@@ -1,14 +1,14 @@
 ﻿
-using System.Data;
 using Dapper;
+using Npgsql;
 
 namespace LibrarySystem;
 
 public class BookRepository : IBookRepository
 {
-    private readonly IDbConnection _connection;
+    private readonly NpgsqlConnection _connection;
 
-    public BookRepository(IDbConnection connection)
+    public BookRepository(NpgsqlConnection connection)
     {
         _connection = connection;
     }

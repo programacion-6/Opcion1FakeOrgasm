@@ -1,13 +1,13 @@
-﻿using System.Data;
-using Dapper;
+﻿using Dapper;
+using Npgsql;
 
 namespace LibrarySystem;
 
 public class PatronRepository : IPatronRepository
 {
-    private readonly IDbConnection _connection;
+    private readonly NpgsqlConnection _connection;
 
-    public PatronRepository(IDbConnection connection)
+    public PatronRepository(NpgsqlConnection connection)
     {
         _connection = connection;
     }

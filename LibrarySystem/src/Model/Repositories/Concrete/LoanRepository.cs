@@ -1,13 +1,13 @@
-﻿using System.Data;
-using Dapper;
+﻿using Dapper;
+using Npgsql;
 
 namespace LibrarySystem;
 
 public class LoanRepository : ILoanRepository
 {
-    private readonly IDbConnection _connection;
+    private readonly NpgsqlConnection _connection;
 
-    public LoanRepository(IDbConnection connection)
+    public LoanRepository(NpgsqlConnection connection)
     {
         _connection = connection;
     }

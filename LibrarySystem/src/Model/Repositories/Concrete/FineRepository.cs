@@ -1,13 +1,13 @@
-﻿using System.Data;
-using Dapper;
+﻿using Dapper;
+using Npgsql;
 
 namespace LibrarySystem;
 
 public class FineRepository : IFineRepository
 {
-    private readonly IDbConnection _connection;
+    private readonly NpgsqlConnection _connection;
 
-    public FineRepository(IDbConnection connection)
+    public FineRepository(NpgsqlConnection connection)
     {
         _connection = connection;
     }

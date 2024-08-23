@@ -13,7 +13,7 @@ public class AllLoanDetailsFormatter : IEntityFormatter<Loan>
 
         return "Loan " + (Entity.WasReturn ? "returned" : "active") + " | "
             + Entity.LoanDate + " - " + Entity.ReturnDate
-            + "\n\tBook: " + Entity.Book.Title
-             + "\n\tPatron: " + Entity.Patron.Name;
+            + "\n\tBook: " + Entity.BookId
+             + "\n\tPatron: " + Entity.PatronId;
     }
 }

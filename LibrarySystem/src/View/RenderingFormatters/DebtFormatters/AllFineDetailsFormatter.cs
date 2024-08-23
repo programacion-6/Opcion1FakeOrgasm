@@ -11,10 +11,10 @@ public class AllFineDetailsFormatter : IEntityFormatter<Fine>
             return string.Empty;
         }
 
-        var loanFormatted = new AllLoanDetailsFormatter { Entity = Entity.Loan };
+        // var loanFormatted = new AllLoanDetailsFormatter { Entity = Entity.Loan };
 
         return "Fine: " + Entity.FineAmount + "$ | "
                     + (Entity.WasPayed ? "paid" : "active")
-                    + "\n\t" + loanFormatted;
+                    + "\n\tLoan id:" + Entity.LoanId;
     }
 }

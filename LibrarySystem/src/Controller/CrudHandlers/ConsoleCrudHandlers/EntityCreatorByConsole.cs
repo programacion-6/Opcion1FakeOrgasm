@@ -13,13 +13,13 @@ public class EntityCreatorByConsole<T> : IEntityCreator<T, string> where T : Ent
         _renderer = renderer;
     }
 
-    public void TryToCreateEntity()
+    public async Task TryToCreateEntity() 
     {
         _renderer.RenderIndicatorMessage("new");
         var newEntity = _requester.AskForEntity();
         if (newEntity is not null)
         {
-            var wasSaved = _repository.Save(newEntity);
+            var wasSaved = await _repository.Save(newEntity);
             RenderSaveStatus(wasSaved);
         }
         else

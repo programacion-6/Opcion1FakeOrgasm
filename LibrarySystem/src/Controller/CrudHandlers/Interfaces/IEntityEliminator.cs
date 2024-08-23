@@ -2,5 +2,5 @@
 
 public interface IEntityEliminator<T, R> where T : EntityBase
 {
-    public void TryToDeleteEntity();
+    Task TryToDeleteEntity();
 }

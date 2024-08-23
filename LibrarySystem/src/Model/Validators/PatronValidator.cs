@@ -29,12 +29,12 @@ public static class PatronValidator
                 "Ensure that a valid name is provided, and it should not be left blank or contain only whitespace.");
         }
 
-        if (!name.All(char.IsLetter))
+        if (!name.All(c => char.IsLetter(c) || char.IsWhiteSpace(c)))
         {
             throw new PatronException(
-                "Name must contain only letters",
+                "Name must contain only letters and spaces",
                 SeverityLevel.Medium,
-                "The patron's name should consist of alphabetic characters only. " +
+                "The patron's name should consist of alphabetic characters and spaces only. " +
                 "Please verify the name and ensure it does not contain any special characters or numbers.");
         }
     }

@@ -3,69 +3,60 @@
 public class Reporter
 {
     private readonly ILoanRepository _loanRepository;
-
     private readonly IBookRepository _bookRepository;
-
     private readonly IPatronRepository _patronRepository;
 
     public Reporter(ILoanRepository loanRepository, IBookRepository bookRepository, IPatronRepository patronRepository)
     {
+        _patronRepository = patronRepository;
         _loanRepository = loanRepository;
         _bookRepository = bookRepository;
-        _patronRepository = patronRepository;
     }
 
-    public List<Book> GetCurrentlyBorrowedBooks()
+    public async Task<List<Book>> GetCurrentlyBorrowedBooks()
     {
-        var currentlyLoans = _loanRepository.GetCurrentlyLoans();
+        var currentlyLoans = await _loanRepository.GetCurrentlyLoans();
+        var currentlyBorrowedBooks = new List<Book>();
 
-        var borrowedBookIds = currentlyLoans.Select(loan => loan.IdBook).ToList();
+        foreach (var loan in currentlyLoans)
+        {
+            var book = await _bookRepository.GetById(loan.BookId);
+            currentlyBorrowedBooks.Add(book);
+        }
 
-        var currentlyBorrowedBooks = borrowedBookIds
-            .Select(id => _bookRepository.GetById(id))
-            .Where(book => book != null)
-            .ToList();
-
-        return currentlyBorrowedBooks!;
+        return currentlyBorrowedBooks;
     }
 
-    public List<Patron> GetPatternsThatBorrowedBooks()
+    public async Task<List<Patron>> GetPatternsThatBorrowedBooks()
     {
-        var currentlyLoans = _loanRepository.GetCurrentlyLoans();
+        var currentlyLoans = await _loanRepository.GetCurrentlyLoans();
+        var currentlyBorrowedPatrons = new List<Patron>();
 
-        var patronIds = currentlyLoans
-            .Select(loan => loan.IdPatron)
-            .Distinct()
-            .ToList();
+        foreach (var loan in currentlyLoans)
+        {
+            var patron = await _patronRepository.GetById(loan.PatronId);
+            currentlyBorrowedPatrons.Add(patron);
+        }
 
-        var patrons = patronIds
-            .Select(id => _patronRepository.GetById(id))
-            .Where(patron => patron != null)
-            .ToList();
-
-        return patrons;
+        return currentlyBorrowedPatrons;
     }
 
-
-    public List<Book> GetOverdueBooks()
+    public async Task<List<Book>> GetOverdueBooks()
     {
-        var overdueLoans = _loanRepository.GetOverdueLoans();
+        var overdueLoans = await _loanRepository.GetOverdueLoans();
+        var overdueBooks = new List<Book>();
 
-        var overdueBookIds = overdueLoans
-            .Select(loan => loan.IdBook)
-            .Distinct()
-            .ToList();
-
-        var overdueBooks = overdueBookIds
-            .Select(id => _bookRepository.GetById(id))
-            .Where(book => book != null)
-            .ToList();
+        foreach (var loan in overdueLoans)
+        {
+            var book = await _bookRepository.GetById(loan.BookId);
+            overdueBooks.Add(book);
+        }
 
         return overdueBooks;
     }
 
-    public List<Loan> GetLoansByPatron(Patron patron)
+    public async Task<List<Loan>> GetLoansByPatron(Patron patron)
     {
-        return _loanRepository.GetLoansByPatron(patron);
+        return (await _loanRepository.GetLoansByPatron(patron.Id)).ToList();
     }
 }

@@ -21,27 +21,28 @@ public class PatronControllerAsText : IExecutableHandler<string>
         _patronRenderer = patronRenderer;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "new":
-                _patronCreator.TryToCreateEntity();
+                await _patronCreator.TryToCreateEntity();
                 break;
             case "delete":
-                _patronEliminator.TryToDeleteEntity();
+                await _patronEliminator.TryToDeleteEntity();
                 break;
             case "update":
-                _patronUpdater.TryToUpdateEntity();
+                await _patronUpdater.TryToUpdateEntity();
                 break;
             case "show all":
-                _patronRenderer.RenderResults(_repository.GetAll());
+                var allPatrons = await _repository.GetAll(); 
+                _patronRenderer.RenderResults(allPatrons.ToList());
                 break;
             case "find by name":
-                FindPatronByName();
+                await FindPatronByName();
                 break;
             case "find by m-number":
-                FindPatronByMembershipNumber();
+                await FindPatronByMembershipNumber();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -49,15 +50,15 @@ public class PatronControllerAsText : IExecutableHandler<string>
         }
     }
 
-    private void FindPatronByName()
+    private async Task FindPatronByName()
     {
         _messageRenderer.RenderSimpleMessage("Enter the name:");
         var name = _receiver.ReceiveInput();
-        var patronFound = _repository.GetByName(name);
+        var patronFound = await _repository.GetByName(name);
         _patronRenderer.RenderResult(patronFound);
     }
 
-    private void FindPatronByMembershipNumber()
+    private async Task FindPatronByMembershipNumber()
     {
         _messageRenderer.RenderSimpleMessage("Enter the membership number:");
         var input = _receiver.ReceiveInput();
@@ -65,7 +66,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
         {
             _messageRenderer.RenderErrorMessage("invalid input");
         }
-        var patronFound = _repository.GetByMembershipNumber(membershipNumber);
+        var patronFound = await _repository.GetByMembershipNumber(membershipNumber);
         _patronRenderer.RenderResult(patronFound);
 
     }

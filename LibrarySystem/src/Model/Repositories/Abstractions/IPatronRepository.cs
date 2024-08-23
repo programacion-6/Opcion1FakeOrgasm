@@ -2,6 +2,6 @@
 
 public interface IPatronRepository : IRepository<Patron>
 {
-    Patron? GetByName(string name);
-    Patron? GetByMembershipNumber(int membershipNumber);
+    Task<Patron> GetByName(string name);
+    Task<Patron> GetByMembershipNumber(int membershipNumber);
 }

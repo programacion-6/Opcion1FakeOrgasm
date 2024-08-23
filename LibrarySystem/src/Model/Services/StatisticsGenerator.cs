@@ -3,43 +3,92 @@
 public class StatisticsGenerator
 {
     private const int TOP_NUMBER_OF_ENTITIES = 3;
-    private readonly ILoanRepository loanRepository;
-    private readonly IFineRepository fineRepository;
+    private readonly ILoanRepository _loanRepository;
+    private readonly IFineRepository _fineRepository;
 
-    public StatisticsGenerator(ILoanRepository loanRepository, IFineRepository fineRepository)
+    private readonly IBookRepository _bookRepository;
+
+    private readonly IPatronRepository _patronRepository;
+
+    public StatisticsGenerator(ILoanRepository loanRepository, IFineRepository fineRepository,
+                               IBookRepository bookRepository, IPatronRepository patronRepository)
     {
-        this.loanRepository = loanRepository;
-        this.fineRepository = fineRepository;
+        _loanRepository = loanRepository;
+        _fineRepository = fineRepository;
+        _bookRepository = bookRepository;
+        _patronRepository = patronRepository;
     }
 
     public List<Book> GetMostBorrowedBooks()
     {
-        var loans = loanRepository.GetAll();
-        var mostBorrowedBooks = loans.GroupBy(loan => loan.Book)
-                                      .OrderByDescending(group => group.Count())
-                                      .Select(group => group.Key)
-                                      .Take(TOP_NUMBER_OF_ENTITIES)
-                                      .ToList();
+        var loans = _loanRepository.GetAll();
+
+        var bookIds = loans
+            .GroupBy(loan => loan.IdBook)
+            .Select(group => new
+            {
+                IdBook = group.Key,
+                Count = group.Count()
+            })
+            .OrderByDescending(bookGroup => bookGroup.Count)
+            .Take(TOP_NUMBER_OF_ENTITIES)
+            .ToList();
+
+        var mostBorrowedBooks = bookIds
+            .Select(bookGroup => _bookRepository.GetById(bookGroup.IdBook))
+            .Where(book => book != null)
+            .ToList();
+
         return mostBorrowedBooks;
     }
 
+
     public List<Patron> GetMostActivePatrons()
     {
-        var loans = loanRepository.GetAll();
-        var mostActivePatrons = loans.GroupBy(loan => loan.Patron)
-                                     .OrderByDescending(group => group.Count())
-                                     .Select(group => group.Key)
-                                     .Take(TOP_NUMBER_OF_ENTITIES)
-                                     .ToList();
+        var loans = _loanRepository.GetAll();
+
+        var patronIds = loans
+            .GroupBy(loan => loan.IdPatron)
+            .Select(group => new
+            {
+                IdPatron = group.Key,
+                Count = group.Count()
+            })
+            .OrderByDescending(patronGroup => patronGroup.Count)
+            .Take(TOP_NUMBER_OF_ENTITIES)
+            .ToList();
+
+        var mostActivePatrons = patronIds
+            .Select(patronGroup => _patronRepository.GetById(patronGroup.IdPatron))
+            .Where(patron => patron != null)
+            .ToList();
+
         return mostActivePatrons;
     }
 
+
     public List<Tuple<Patron, List<Fine>>> GetPatronsFines()
     {
-        var fines = fineRepository.GetAll();
-        var patronsFines = fines.GroupBy(fine => fine.Loan.Patron)
-                                .Select(group => new Tuple<Patron, List<Fine>>(group.Key, group.ToList()))
-                                .ToList();
+        var fines = _fineRepository.GetAll();
+
+        var patronIds = fines
+            .GroupBy(fine => fine.Loan.IdPatron)
+            .Select(group => new
+            {
+                IdPatron = group.Key,
+                Fines = group.ToList()
+            })
+            .ToList();
+
+        var patronsFines = patronIds
+            .Select(patronGroup =>
+            {
+                var patron = _patronRepository.GetById(patronGroup.IdPatron);
+                return new Tuple<Patron, List<Fine>>(patron, patronGroup.Fines);
+            })
+            .Where(tuple => tuple.Item1 != null)
+            .ToList();
+
         return patronsFines;
     }
 }

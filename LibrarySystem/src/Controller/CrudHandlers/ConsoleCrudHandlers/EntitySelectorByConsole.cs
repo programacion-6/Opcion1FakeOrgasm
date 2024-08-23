@@ -1,24 +1,20 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class EntitySelectorByConsole<T> where T : EntityBase
 {
-    private const int NO_INDEX_FOUND = -1;
     private IMessageRenderer _messageRenderer;
-    private IResultRenderer<T> _renderer;
-    private IReceiver<string> _receiver;
+    protected IEntityFormatterFactory<T> _formatterFactory;
 
-    public EntitySelectorByConsole(IResultRenderer<T> renderer, IMessageRenderer messageRenderer, IReceiver<string> receiver)
+    public EntitySelectorByConsole(IMessageRenderer messageRenderer, IEntityFormatterFactory<T> formatterFactory)
     {
-        _renderer = renderer;
         _messageRenderer = messageRenderer;
-        _receiver = receiver;
+        _formatterFactory = formatterFactory;
     }
 
     public T? TryToSelectAtLeastOne(List<T> entities)
     {
-        _messageRenderer.RenderIndicatorMessage("choose one");
-        _renderer.RenderResults(entities);
-
         if (entities.Any())
         {
             T? entitySelected;
@@ -33,55 +29,35 @@ public class EntitySelectorByConsole<T> where T : EntityBase
         return null;
     }
 
-    private T? SelectEntityByConsole(List<T> entities)
+    private T SelectEntityByConsole(List<T> entities)
     {
-        var index = GetValidIndex(entities);
-        var entitySelected = SelectEntityByIndex(index, entities);
-        return entitySelected;
+        var selectionPrompt = CreatePrompt(entities);
+        var selected = AnsiConsole.Prompt(selectionPrompt);
+        _messageRenderer.RenderIndicatorMessage("Selected");
+        ResultRenderer.RenderResult(selected);
+
+        return selected.Entity;
     }
 
-    private int GetValidIndex(List<T> entities)
+    private SelectionPrompt<IEntityFormatter<T>> CreatePrompt(List<T> entities)
     {
-        var index = NO_INDEX_FOUND;
-        _messageRenderer.RenderSimpleMessage("select one by its number, enter it:");
-        while (index == NO_INDEX_FOUND)
+        var selectionPrompt = new SelectionPrompt<IEntityFormatter<T>>()
+                    .Title("Choose one")
+                    .PageSize(5)
+                    .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
+                    .HighlightStyle(new Style(foreground: Color.LightGreen));
+
+        AddChoicesToSelector(selectionPrompt, entities);
+        
+        return selectionPrompt;
+    }
+
+    private void AddChoicesToSelector(SelectionPrompt<IEntityFormatter<T>> selectionPrompt, List<T> entities)
+    {
+        foreach (var entity in entities)
         {
-            var inputReceived = _receiver.ReceiveInput();
-            index = TryToParseTheIndex(inputReceived);
-            if (index == NO_INDEX_FOUND)
-            {
-                _messageRenderer.RenderErrorMessage("enter a valid number...");
-            }
-            else if (!IsValidIndex(--index, entities))
-            {
-                index = NO_INDEX_FOUND;
-                _messageRenderer.RenderErrorMessage("out of range, try again...");
-            }
+            var formatter = _formatterFactory.CreateFormatter(entity, FormatType.Simple);
+            selectionPrompt.AddChoice(formatter);
         }
-
-        return index;
-    }
-
-    private int TryToParseTheIndex(string inputReceived)
-    {
-        if (Int32.TryParse(inputReceived, out int indexParsed))
-        {
-            return indexParsed;
-        }
-        else
-        {
-            return NO_INDEX_FOUND;
-        }
-    }
-
-    private bool IsValidIndex(int index, List<T> items)
-    {
-        return index >= 0 && index < items.Count;
-    }
-
-    private T? SelectEntityByIndex(int index, List<T> items)
-    {
-        return IsValidIndex(index, items)
-        ? items[index] : default;
     }
 }

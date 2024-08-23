@@ -8,8 +8,8 @@ package "req [Package] Search&Reporting [requirement diagram]" {
     overview = Allow searching for patrons by name or membership number
     }
 
-    stereotype "Fines calculation (optional)" as fines_calculation <<Requirement>> {
-    overview = Implement a system for calculating and recording fines for overdue books.
+    stereotype "Borrowing debt" (optional)" as borrowing_debt <<Requirement>> {
+    overview = The system should provide information about the patron's debts
     }
 
     stereotype "Statistics (optional)" as statistics <<Requirement>> {
@@ -19,7 +19,7 @@ package "req [Package] Search&Reporting [requirement diagram]" {
     stereotype "Reporting" as reporting <<Requirement>> {
     overview = generate reports such as a list of all books currently borrowed, overdue books, and borrowing history for a specific patron
     }
-    reporting <.. fines_calculation: <<deriveReqt>>
+    reporting <.. borrowing_debt: <<deriveReqt>>
     reporting <.. statistics: <<deriveReqt>>
 
     stereotype "Search and Reporting" as  search_reporting <<Requirement>> {

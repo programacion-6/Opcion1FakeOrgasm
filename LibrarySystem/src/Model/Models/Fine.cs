@@ -1,15 +1,27 @@
-﻿namespace LibrarySystem;
-
-public class Fine : EntityBase
+﻿namespace LibrarySystem
 {
-    public required Loan Loan { get; set; }
-    public required double FineAmount { get; set; }
-    public bool WasPayed { get; set; } = false;
-
-    public override string ToString()
+    public class Fine : EntityBase
     {
-        return "Fine: " + FineAmount + "$ | " 
-            + (WasPayed ? "paid" : "active") 
-            + "\n\t" + Loan;
+        private Guid _idLoan;
+        private double _fineAmount;
+        private bool _wasPayed = false;
+
+        public Guid IdLoan
+        {
+            get => _idLoan;
+            set => _idLoan = value;
+        }
+
+        public double FineAmount
+        {
+            get => _fineAmount;
+            set => _fineAmount = value;
+        }
+
+        public bool WasPayed
+        {
+            get => _wasPayed;
+            set => _wasPayed = value;
+        }
     }
 }

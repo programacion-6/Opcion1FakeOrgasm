@@ -2,5 +2,5 @@
 
 public interface IEntityUpdater<T, R> where T : EntityBase
 {
-    public void TryToUpdateEntity();
+    Task TryToUpdateEntity();
 }

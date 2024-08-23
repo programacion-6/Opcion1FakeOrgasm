@@ -15,17 +15,18 @@ public class EntityUpdaterByConsole<T> : IEntityUpdater<T, string> where T : Ent
         _entitySelector = entitySelector;
     }
 
-    public void TryToUpdateEntity()
+    public async Task TryToUpdateEntity()
     {
-        var entities = _repository.GetAll();
-        var entity = _entitySelector.TryToSelectAtLeastOne(entities);
+        var entities = await _repository.GetAll();
+        
+        var entity = _entitySelector.TryToSelectAtLeastOne(entities.ToList());
         if (entity is not null)
         {
             var newEntityData = _entityRequester.AskForEntity();
             if (newEntityData is not null)
             {
                 newEntityData.Id = entity.Id;
-                var wasUpdated = _repository.Update(newEntityData);
+                var wasUpdated = await _repository.Update(newEntityData);
                 RenderDeleteStatus(wasUpdated);
             }
         }

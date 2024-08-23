@@ -9,6 +9,7 @@ class Program
 
         await connection.OpenAsync();
 
+        await DatabaseConfig.CreateDatabaseSchema(connection);
 
         IReceiver<string> receiver = new ConsoleReceiver();
         IMessageRenderer messageRenderer = new ConsoleMessageRenderer();

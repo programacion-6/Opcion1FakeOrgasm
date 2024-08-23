@@ -2,7 +2,7 @@
 
 public class Fine : EntityBase
 {
-    public required Loan Loan { get; set; }
+    public required Guid LoanId { get; set; }
     public required double FineAmount { get; set; }
     public bool WasPayed { get; set; } = false;
 
@@ -10,6 +10,6 @@ public class Fine : EntityBase
     {
         return "Fine: " + FineAmount + "$ | " 
             + (WasPayed ? "paid" : "active") 
-            + "\n\t" + Loan;
+            + "\n\t" + LoanId;
     }
 }

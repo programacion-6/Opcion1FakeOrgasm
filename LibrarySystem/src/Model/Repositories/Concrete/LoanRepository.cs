@@ -1,6 +1,6 @@
 ﻿namespace LibrarySystem;
 
-public class LoanRepository : BaseRepository<Loan>, ILoanRepository
+public class LoanRepository : ILoanRepository
 {
     public List<Loan> GetCurrentlyLoans()
     {

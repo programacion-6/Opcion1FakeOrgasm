@@ -2,8 +2,8 @@
 
 public class Loan : EntityBase
 {
-    public required Book Book { get; set; }
-    public required Patron Patron { get; set; }
+    public required Guid BookId { get; set; }
+    public required Guid PatronId { get; set; }
     public DateTime LoanDate { get; set; } = DateTime.Now;
     public required DateTime ReturnDate { get; set; }
     public bool WasReturn { get; set; } = false;
@@ -12,7 +12,7 @@ public class Loan : EntityBase
     {
         return "Loan " + (WasReturn ? "returned" : "active") + " | "
             + LoanDate + " - " + ReturnDate
-            + "\n\tBook: " + Book.Title
-             + "\n\tPatron: " + Patron.Name;
+            + "\n\tBook: " + BookId
+             + "\n\tPatron: " + PatronId;
     }
 }

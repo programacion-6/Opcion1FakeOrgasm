@@ -1,32 +1,80 @@
-﻿namespace LibrarySystem;
+﻿
+using System.Data;
+using Dapper;
 
-public class BookRepository : BaseRepository<Book>, IBookRepository
+namespace LibrarySystem;
+
+public class BookRepository : IBookRepository
 {
-    public Book? GetByTitle(string title)
+    private readonly IDbConnection _connection;
+
+    public BookRepository(IDbConnection connection)
     {
-        return Data.Values
-                   .FirstOrDefault(book =>
-                   book.Title.Equals(title, StringComparison.OrdinalIgnoreCase));
+        _connection = connection;
     }
 
-    public Book? GetByAuthor(string author)
+    public async Task<bool> Save(Book item)
     {
-        return Data.Values
-                   .FirstOrDefault(book =>
-                   book.Author.Equals(author, StringComparison.OrdinalIgnoreCase));
+        const string sql = @"
+                INSERT INTO Books (Id, Title, Author, ISBN, Genre, PublicationYear)
+                VALUES (@Id, @Title, @Author, @ISBN, @Genre, @PublicationYear)";
+
+        int affected = await _connection.ExecuteAsync(sql, item);
+        return affected > 0;
     }
 
-    public Book? GetByISBN(string ISBN)
+    public async Task<bool> Update(Book item)
     {
-        return Data.Values
-                   .FirstOrDefault(book =>
-                   book.ISBN.Equals(ISBN, StringComparison.OrdinalIgnoreCase));
+        const string sql = @"
+                UPDATE Books 
+                SET Title = @Title, Author = @Author, ISBN = @ISBN, 
+                    Genre = @Genre, PublicationYear = @PublicationYear
+                WHERE Id = @Id";
+
+        int affected = await _connection.ExecuteAsync(sql, item);
+        return affected > 0;
     }
 
-    public List<Book> GetBooksByGenre(string genre)
+    public async Task<bool> Delete(Guid id)
     {
-        return Data.Values
-                .Where(book => book.Genre.Equals(genre, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+        const string sql = "DELETE FROM Books WHERE Id = @Id";
+        int affected = await _connection.ExecuteAsync(sql, new { Id = id });
+        return affected > 0;
+    }
+
+    public async Task<Book> GetById(Guid id)
+    {
+        const string sql = "SELECT * FROM Books WHERE Id = @Id";
+        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { Id = id });
+    }
+
+    public async Task<IEnumerable<Book>> GetAll()
+    {
+        const string sql = "SELECT * FROM Books";
+        return await _connection.QueryAsync<Book>(sql);
+    }
+
+    async Task<Book> IBookRepository.GetByTitle(string title)
+    {
+        const string sql = "SELECT * FROM Books WHERE LOWER(Title) = LOWER(@Title)";
+        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { Title = title });
+    }
+
+    async Task<Book> IBookRepository.GetByAuthor(string author)
+    {
+        const string sql = "SELECT * FROM Books WHERE LOWER(Author) = LOWER(@Author)";
+        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { Author = author });
+    }
+
+    async Task<Book> IBookRepository.GetByISBN(string ISBN)
+    {
+        const string sql = "SELECT * FROM Books WHERE LOWER(ISBN) = LOWER(@ISBN)";
+        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { ISBN });
+    }
+
+    async Task<IEnumerable<Book>> IBookRepository.GetBooksByGenre(string genre)
+    {
+        const string sql = "SELECT * FROM Books WHERE LOWER(Genre) = LOWER(@Genre)";
+        return await _connection.QueryAsync<Book>(sql, new { Genre = genre });
     }
 }

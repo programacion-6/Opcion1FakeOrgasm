@@ -1,6 +1,6 @@
 ﻿namespace LibrarySystem;
 
-public class FineRepository : BaseRepository<Fine>, IFineRepository
+public class FineRepository : IFineRepository
 {
     public List<Fine> GetActiveFines()
     {

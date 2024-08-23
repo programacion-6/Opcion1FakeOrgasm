@@ -1,6 +1,6 @@
 ﻿namespace LibrarySystem;
 
-public class PatronRepository : BaseRepository<Patron>, IPatronRepository
+public class PatronRepository : IPatronRepository
 {
     public Patron? GetByName(string name)
     {

@@ -2,8 +2,8 @@
 
 public interface ILoanRepository : IRepository<Loan>
 {
-    List<Loan> GetCurrentlyLoans();
-    List<Loan> GetOverdueLoans();
-    List<Loan> GetLoansByPatron(Patron patron);
-    List<Loan> GetActiveLoansByPatron(Patron patron);
+    Task<IEnumerable<Loan>> GetCurrentlyLoans();
+    Task<IEnumerable<Loan>> GetOverdueLoans();
+    Task<IEnumerable<Loan>> GetLoansByPatron(Guid patronId);
+    Task<IEnumerable<Loan>> GetActiveLoansByPatron(Guid patronId);
 }

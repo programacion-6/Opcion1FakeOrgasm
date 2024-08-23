@@ -20,7 +20,7 @@ public class Lender
     public void LendBook(Book book, Patron patron, int loanTimeInDays)
     {
         lenderValidator.ValidateLoanTime(loanTimeInDays);
-        if (!lenderValidator.HasFine(patron))
+        if (!lenderValidator.HasFine(patron, loanRepository))
         {
             var loan = new Loan()
             {

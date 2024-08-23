@@ -25,30 +25,30 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         _patronSelector = patronSelector;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "show overdue books":
-                ShowOverdueBooks();
+                await ShowOverdueBooks();
                 break;
             case "show borrowed books":
-                ShowCurrentlyBorrowedBooks();
+                await ShowCurrentlyBorrowedBooks();
                 break;
             case "show current loans by patron":
-                ShowCurrentLoansByPatron();
+                await ShowCurrentLoansByPatron();
                 break;
             case "show loans by patron":
-                ShowLoansByPatron();
+                await ShowLoansByPatron();
                 break;
             case "show most borrowed books":
-                ShowMostBorrowedBooks();
+                await ShowMostBorrowedBooks();
                 break;
             case "show most active patrons":
-                ShowMostActivePatrons();
+                await ShowMostActivePatrons();
                 break;
             case "show patron debts":
-                ShowPatronsFines();
+                await ShowPatronsFines();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -56,39 +56,39 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         }
     }
 
-    public void ShowOverdueBooks()
+    public async Task ShowOverdueBooks()
     {
-        var books = _reporter.GetOverdueBooks();
+        var books = await _reporter.GetOverdueBooks();
         _bookRenderer.RenderResults(books);
     }
 
-    public void ShowCurrentlyBorrowedBooks()
+    public async Task ShowCurrentlyBorrowedBooks()
     {
-        var books = _reporter.GetCurrentlyBorrowedBooks();
+        var books = await _reporter.GetCurrentlyBorrowedBooks();
         _bookRenderer.RenderResults(books);
     }
 
-    public void ShowCurrentLoansByPatron()
+    public async Task ShowCurrentLoansByPatron()
     {
-        var allPatrons = _reporter.GetPatternsThatBorrowedBooks()
+        var allPatrons = (await _reporter.GetPatternsThatBorrowedBooks())
                                 .GroupBy(patron => patron.Id)
                                 .Select(group => group.First())
                                 .ToList();
         var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons);
         if (patron is not null)
         {
-            var loans = _reporter.GetLoansByPatron(patron);
+            var loans = await _reporter.GetLoansByPatron(patron);
             _loanRenderer.RenderResults(loans);
         }
     }
 
-    public void ShowLoansByPatron()
+    public async Task ShowLoansByPatron()
     {
-        var allPatrons = _patronRepository.GetAll();
-        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons);
+        var allPatrons = await _patronRepository.GetAll();
+        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
         if (patron is not null)
         {
-            var loans = _reporter.GetLoansByPatron(patron);
+            var loans = await _reporter.GetLoansByPatron(patron);
             if (loans.Any())
             {
                 _loanRenderer.RenderResults(loans);
@@ -100,21 +100,21 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         }
     }
 
-    public void ShowMostBorrowedBooks()
+    public async Task ShowMostBorrowedBooks()
     {
-        var books = _statisticsGenerator.GetMostBorrowedBooks();
+        var books = await _statisticsGenerator.GetMostBorrowedBooks();
         _bookRenderer.RenderResults(books);
     }
 
-    public void ShowMostActivePatrons()
+    public async Task ShowMostActivePatrons()
     {
-        var patrons = _statisticsGenerator.GetMostActivePatrons();
+        var patrons = await _statisticsGenerator.GetMostActivePatrons();
         _patronRenderer.RenderResults(patrons);
     }
 
-    public void ShowPatronsFines()
+    public async Task ShowPatronsFines()
     {
-        var patronsFines = _statisticsGenerator.GetPatronsFines();
+        var patronsFines = await _statisticsGenerator.GetPatronsFines();
         if (patronsFines.Any())
         {
 

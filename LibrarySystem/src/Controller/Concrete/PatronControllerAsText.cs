@@ -42,7 +42,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
                 await FindPatronByName();
                 break;
             case "find by m-number":
-                FindPatronByMembershipNumber();
+                await FindPatronByMembershipNumber();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");

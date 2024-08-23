@@ -139,18 +139,14 @@ public class LoanControllerAsText : IExecutableHandler<string>
                                             .Where(book => !borrowedBooksIds.Contains(book.Id))
                                             .ToList();
 
-#pragma warning disable CS8603
         return _bookSelector.TryToSelectAtLeastOne(booksAvailable);
-#pragma warning restore CS8603
     }
 
     private Patron SelectPatron()
     {
         var allPatrons = _patronRepository.GetAll();
 
-#pragma warning disable CS8603
         return _patronSelector.TryToSelectAtLeastOne(allPatrons);
-#pragma warning restore CS8603
     }
 
     private bool ValidateLoanEligibility(Book book, Patron patron)

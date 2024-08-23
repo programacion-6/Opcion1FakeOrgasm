@@ -81,24 +81,36 @@ public class LoanControllerAsText : IExecutableHandler<string>
     private Patron? SelectPatronForReturn()
     {
         var activeLoans = _loanRepository.GetCurrentlyLoans();
-        var patrons = activeLoans.Select(loan => loan.Patron)
-                                 .GroupBy(patron => patron.Id)
-                                 .Select(group => group.First())
-                                 .ToList();
+
+        var patronIds = activeLoans
+            .Select(loan => loan.IdPatron)
+            .Distinct()
+            .ToList();
+
+        var patrons = patronIds
+            .Select(id => _patronRepository.GetById(id))
+            .Where(patron => patron != null)
+            .ToList();
+
         return _patronSelector.TryToSelectAtLeastOne(patrons);
     }
 
     private Book? SelectBookForReturn(Patron patron)
     {
         var patronLoans = _loanRepository.GetActiveLoansByPatron(patron);
-        var borrowedBooks = patronLoans.Select(loan => loan.Book).ToList();
+        
+        var borrowedBooks = patronLoans
+            .Select(loan => _bookRepository.GetById(loan.IdBook))
+            .Where(book => book != null)
+            .ToList();
+        
         return _bookSelector.TryToSelectAtLeastOne(borrowedBooks);
     }
 
     private void ReturnSelectedBook(Patron patron, Book bookSelected)
     {
         var loanSelected = _loanRepository.GetActiveLoansByPatron(patron)
-                                          .FirstOrDefault(loan => loan.Book.Id == bookSelected.Id);
+                                          .FirstOrDefault(loan => loan.IdBook == bookSelected.Id);
         if (loanSelected != null)
         {
             _lender.ReturnBook(loanSelected);
@@ -121,20 +133,24 @@ public class LoanControllerAsText : IExecutableHandler<string>
     private Book SelectAvailableBook()
     {
         var borrowedBooksIds = _loanRepository.GetCurrentlyLoans()
-                                              .Select(loan => loan.Book.Id)
+                                              .Select(loan => loan.IdBook)
                                               .ToList();
         var booksAvailable = _bookRepository.GetAll()
                                             .Where(book => !borrowedBooksIds.Contains(book.Id))
                                             .ToList();
-                                            
+
+#pragma warning disable CS8603
         return _bookSelector.TryToSelectAtLeastOne(booksAvailable);
+#pragma warning restore CS8603
     }
 
     private Patron SelectPatron()
     {
         var allPatrons = _patronRepository.GetAll();
 
+#pragma warning disable CS8603
         return _patronSelector.TryToSelectAtLeastOne(allPatrons);
+#pragma warning restore CS8603
     }
 
     private bool ValidateLoanEligibility(Book book, Patron patron)

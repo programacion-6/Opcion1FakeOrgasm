@@ -1,16 +1,15 @@
-﻿
-using Dapper;
+﻿using Dapper;
 using Npgsql;
 
 namespace LibrarySystem;
 
 public class BookRepository : IBookRepository
 {
-    private readonly NpgsqlConnection _connection;
+    private readonly string _connectionString;
 
-    public BookRepository(NpgsqlConnection connection)
+    public BookRepository(string connectionString)
     {
-        _connection = connection;
+        _connectionString = connectionString;
     }
 
     public async Task<bool> Save(Book item)
@@ -19,8 +18,11 @@ public class BookRepository : IBookRepository
                 INSERT INTO Books (Id, Title, Author, ISBN, Genre, PublicationYear)
                 VALUES (@Id, @Title, @Author, @ISBN, @Genre, @PublicationYear)";
 
-        int affected = await _connection.ExecuteAsync(sql, item);
-        return affected > 0;
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            int affected = await connection.ExecuteAsync(sql, item);
+            return affected > 0;
+        }
     }
 
     public async Task<bool> Update(Book item)
@@ -31,50 +33,81 @@ public class BookRepository : IBookRepository
                     Genre = @Genre, PublicationYear = @PublicationYear
                 WHERE Id = @Id";
 
-        int affected = await _connection.ExecuteAsync(sql, item);
-        return affected > 0;
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            int affected = await connection.ExecuteAsync(sql, item);
+            return affected > 0;
+        }
     }
 
     public async Task<bool> Delete(Guid id)
     {
         const string sql = "DELETE FROM Books WHERE Id = @Id";
-        int affected = await _connection.ExecuteAsync(sql, new { Id = id });
-        return affected > 0;
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            int affected = await connection.ExecuteAsync(sql, new { Id = id });
+            return affected > 0;
+        }
     }
 
     public async Task<Book> GetById(Guid id)
     {
         const string sql = "SELECT * FROM Books WHERE Id = @Id";
-        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { Id = id });
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { Id = id });
+        }
     }
 
     public async Task<IEnumerable<Book>> GetAll()
     {
         const string sql = "SELECT * FROM Books";
-        return await _connection.QueryAsync<Book>(sql);
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QueryAsync<Book>(sql);
+        }
     }
 
-    async Task<Book> IBookRepository.GetByTitle(string title)
+    public async Task<Book> GetByTitle(string title)
     {
         const string sql = "SELECT * FROM Books WHERE LOWER(Title) = LOWER(@Title)";
-        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { Title = title });
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { Title = title });
+        }
     }
 
-    async Task<Book> IBookRepository.GetByAuthor(string author)
+    public async Task<Book> GetByAuthor(string author)
     {
         const string sql = "SELECT * FROM Books WHERE LOWER(Author) = LOWER(@Author)";
-        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { Author = author });
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { Author = author });
+        }
     }
 
-    async Task<Book> IBookRepository.GetByISBN(string ISBN)
+    public async Task<Book> GetByISBN(string ISBN)
     {
         const string sql = "SELECT * FROM Books WHERE LOWER(ISBN) = LOWER(@ISBN)";
-        return await _connection.QuerySingleOrDefaultAsync<Book>(sql, new { ISBN });
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { ISBN });
+        }
     }
 
-    async Task<IEnumerable<Book>> IBookRepository.GetBooksByGenre(string genre)
+    public async Task<IEnumerable<Book>> GetBooksByGenre(string genre)
     {
         const string sql = "SELECT * FROM Books WHERE LOWER(Genre) = LOWER(@Genre)";
-        return await _connection.QueryAsync<Book>(sql, new { Genre = genre });
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QueryAsync<Book>(sql, new { Genre = genre });
+        }
     }
 }

@@ -37,4 +37,12 @@ public class Loan : EntityBase
         get => _wasReturn;
         set => _wasReturn = value;
     }
+
+    public override string ToString()
+    {
+        return "Loan " + (WasReturn ? "returned" : "active") + " | "
+            + LoanDate + " - " + ReturnDate
+            + "\n\tBook: " + BookId
+             + "\n\tPatron: " + PatronId;
+    }
 }

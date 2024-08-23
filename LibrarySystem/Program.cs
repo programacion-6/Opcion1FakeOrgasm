@@ -17,16 +17,13 @@ class Program
         ILoanRepository loanRepository = new LoanRepository(connection);
         IFineRepository fineRepository = new FineRepository(connection);
 
-
-        LoanFormatter loanFormatter = new LoanFormatter(loanRepository,bookRepository, patronRepository);
-
         IReceiver<string> receiver = new ConsoleReceiver();
         IMessageRenderer messageRenderer = new ConsoleMessageRenderer();
         AbstractViewChanger<string> viewChanger = new ConsoleViewChanger();
         IResultRenderer<Book> bookRenderer = new ConsoleBookRenderer();
         IResultRenderer<Patron> patronRenderer = new ConsolePatronRenderer();
-        IResultRenderer<Fine> fineRenderer = new ConsoleFineRenderer(loanFormatter);
-        IResultRenderer<Loan> loanRenderer = new ConsoleLoanRenderer(loanFormatter);
+        IResultRenderer<Fine> fineRenderer = new ConsoleFineRenderer();
+        IResultRenderer<Loan> loanRenderer = new ConsoleLoanRenderer();
 
         LenderValidator lenderValidator = new LenderValidator(fineRepository);
         Lender lender = new Lender(loanRepository, lenderValidator);

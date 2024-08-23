@@ -2,18 +2,12 @@
 
 public class ConsoleLoanRenderer : IResultRenderer<Loan>
 {
-    private readonly LoanFormatter _loanFormatter;
-
-    public ConsoleLoanRenderer(LoanFormatter loanFormatter)
-    {
-        _loanFormatter = loanFormatter;
-    }
 
     public void RenderResult(Loan? result)
     {
         if (result is not null)
         {
-            Console.WriteLine($"{_loanFormatter.FormatLoan(result.Id)}\n");
+            Console.WriteLine($"{result}\n");
         }
         else
         {
@@ -29,7 +23,7 @@ public class ConsoleLoanRenderer : IResultRenderer<Loan>
             int index = 0;
             foreach (var result in results)
             {
-                Console.WriteLine($"{++index}. {_loanFormatter.FormatLoan(result.Id)}");
+                Console.WriteLine($"{++index}. {result}");
             }
         }
         else
@@ -43,7 +37,7 @@ public class ConsoleLoanRenderer : IResultRenderer<Loan>
     {
         if (result is not null)
         {
-            Console.WriteLine($"{_loanFormatter.FormatLoan(result.Id)} : {someElse}");
+            Console.WriteLine($"{result} : {someElse}");
         }
         else
         {

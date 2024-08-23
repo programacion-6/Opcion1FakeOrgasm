@@ -101,17 +101,19 @@ public class LoanControllerAsText : IExecutableHandler<string>
 
     private async Task LendBook()
     {
-        var borrowedBooksIds = (await _loanRepository.GetCurrentlyLoans())
+        var allLoans = await _loanRepository.GetCurrentlyLoans();
+        var borrowedBooksIds = allLoans
                                 .Select(loan => loan.BookId)
                                 .ToList();
 
-        var booksAvailable = (await _bookRepository.GetAll())
+        var allBooks = await _bookRepository.GetAll();
+        var booksAvailable = allBooks
                                 .Where(book => !borrowedBooksIds.Contains(book.Id))
                                 .ToList();
 
         var book = _bookSelector.TryToSelectAtLeastOne(booksAvailable);
-
         var allPatrons = await _patronRepository.GetAll();
+
         var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
         var isValidToLoan = TheBookWasFound(book) && ThePatronWasFound(patron);
 

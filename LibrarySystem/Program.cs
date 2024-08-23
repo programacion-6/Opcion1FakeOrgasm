@@ -62,6 +62,6 @@ class Program
         };
 
         IAppController app = new AppControllerAsText(viewChanger, receiver, controllers, messageRenderer);
-        app.ExecuteInfinitely();
+        await app.ExecuteInfinitelyAsync();
     }
 }

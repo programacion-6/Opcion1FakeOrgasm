@@ -2,6 +2,6 @@ namespace LibrarySystem;
 
 public interface IAppController
 {
-    public void ExecuteInfinitely();
+    public Task ExecuteInfinitelyAsync();
 
 }

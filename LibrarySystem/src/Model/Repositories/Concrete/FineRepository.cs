@@ -12,13 +12,20 @@ public class FineRepository : BaseRepository<Fine>, IFineRepository
     public Fine? GetByLoan(Loan loan)
     {
         return Data.Values
-                   .FirstOrDefault(fine => fine.Loan.Id == loan.Id);
+                   .FirstOrDefault(fine => fine.IdLoan == loan.Id);
     }
 
-    public List<Fine> GetFinesByPatron(Patron patron)
+    public List<Fine> GetFinesByPatron(Patron patron, ILoanRepository loanRepository)
     {
+        var loans = loanRepository.GetAll();
+
+        var patronLoanIds = loans
+            .Where(loan => loan.IdPatron == patron.Id)
+            .Select(loan => loan.Id)
+            .ToHashSet();
+
         return Data.Values
-                   .Where(fine => fine.Loan.IdPatron == patron.Id)
+                   .Where(fine => patronLoanIds.Contains(fine.IdLoan))
                    .ToList();
     }
 }

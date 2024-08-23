@@ -2,11 +2,19 @@
 
 public class ConsoleFineRenderer : IResultRenderer<Fine>
 {
+    private readonly LoanFormatter _loanFormatter;
+
+    public ConsoleFineRenderer(LoanFormatter loanFormatter)
+    {
+        _loanFormatter = loanFormatter;
+    }
+
     public void RenderResult(Fine? result)
     {
         if (result is not null)
         {
-            Console.WriteLine($"{result}\n");
+            var loanFormatted = _loanFormatter.FormatLoan(result.IdLoan);
+            Console.WriteLine($"Fine: {result.FineAmount}$ | {(result.WasPayed ? "paid" : "active")}\n{loanFormatted}\n");
         }
         else
         {
@@ -22,7 +30,8 @@ public class ConsoleFineRenderer : IResultRenderer<Fine>
             int index = 0;
             foreach (var result in results)
             {
-                Console.WriteLine($"{++index}. {result}");
+                var loanFormatted = _loanFormatter.FormatLoan(result.IdLoan);
+                Console.WriteLine($"{++index}. Fine: {result.FineAmount}$ | {(result.WasPayed ? "paid" : "active")}\n{loanFormatted}\n");
             }
         }
         else
@@ -36,7 +45,8 @@ public class ConsoleFineRenderer : IResultRenderer<Fine>
     {
         if (result is not null)
         {
-            Console.WriteLine($"{result} : {someElse}");
+            var loanFormatted = _loanFormatter.FormatLoan(result.IdLoan);
+            Console.WriteLine($"Fine: {result.FineAmount}$ | {(result.WasPayed ? "paid" : "active")}\n{loanFormatted} : {someElse}\n");
         }
         else
         {

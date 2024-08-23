@@ -2,23 +2,18 @@
 
 public class ConsoleLoanRenderer : IResultRenderer<Loan>
 {
-    private readonly IBookRepository _bookRepository;
-    private readonly IPatronRepository _patronRepository;
+    private readonly LoanFormatter _loanFormatter;
 
-    public ConsoleLoanRenderer(IBookRepository bookRepository, IPatronRepository patronRepository)
+    public ConsoleLoanRenderer(LoanFormatter loanFormatter)
     {
-        _bookRepository = bookRepository;
-        _patronRepository = patronRepository;
+        _loanFormatter = loanFormatter;
     }
 
     public void RenderResult(Loan? result)
     {
         if (result is not null)
         {
-            var book = _bookRepository.GetById(result.IdBook);
-            var patron = _patronRepository.GetById(result.IdPatron);
-
-            Console.WriteLine($"{FormatLoan(result, book, patron)}\n");
+            Console.WriteLine($"{_loanFormatter.FormatLoan(result.Id)}\n");
         }
         else
         {
@@ -34,9 +29,7 @@ public class ConsoleLoanRenderer : IResultRenderer<Loan>
             int index = 0;
             foreach (var result in results)
             {
-                var book = _bookRepository.GetById(result.IdBook);
-                var patron = _patronRepository.GetById(result.IdPatron);
-                Console.WriteLine($"{++index}. {FormatLoan(result, book, patron)}");
+                Console.WriteLine($"{++index}. {_loanFormatter.FormatLoan(result.Id)}");
             }
         }
         else
@@ -50,21 +43,12 @@ public class ConsoleLoanRenderer : IResultRenderer<Loan>
     {
         if (result is not null)
         {
-            var book = _bookRepository.GetById(result.IdBook);
-            var patron = _patronRepository.GetById(result.IdPatron);
-            Console.WriteLine($"{FormatLoan(result, book, patron)} : {someElse}");
+            Console.WriteLine($"{_loanFormatter.FormatLoan(result.Id)} : {someElse}");
         }
         else
         {
             var infoMessage = ConsoleFormatter.AsAnInfo("no loans found");
             Console.WriteLine(infoMessage);
         }
-    }
-
-    private string FormatLoan(Loan loan, Book book, Patron patron)
-    {
-        return $"Loan {(loan.WasReturn ? "returned" : "active")} | {loan.LoanDate} - {loan.ReturnDate}" +
-               $"\n\tBook: {book.Title}" +
-               $"\n\tPatron: {patron.Name}";
     }
 }

@@ -2,17 +2,36 @@ namespace LibrarySystem;
 
 public class LoanFormatterFactory : IEntityFormatterFactory<Loan>
 {
-    public IEntityFormatter<Loan> CreateFormatter(Loan entity, FormatType formatType)
+    private IBookRepository _bookRepository;
+    private IPatronRepository _patronRepository;
+
+    public LoanFormatterFactory(IBookRepository bookRepository, IPatronRepository patronRepository)
     {
-        return formatType switch
-        {
-            FormatType.Simple
-                => new SimpleLoanDetailsFormatter
-                { Entity = entity },
-            FormatType.Detailed
-                => new AllLoanDetailsFormatter
-                { Entity = entity },
-            _ => throw new Exception("No formatter found")
-        };
+        _bookRepository = bookRepository;
+        _patronRepository = patronRepository;
     }
+
+    public IEntityFormatter<Loan>? CreateSimpleFormatter(Loan? entity)
+    {
+        if (entity is not null)
+        {
+            var formatter = new SimpleLoanFormatter(entity);
+
+            return formatter;
+        }
+
+        return null;
+    }
+
+    public async Task<IEntityFormatter<Loan>?> CreateVerboseFormatter(Loan? entity)
+    {
+        if (entity is not null)
+        {
+            var formatter = new VerboseLoanFormatter(entity, _bookRepository, _patronRepository);
+            await formatter.LoadRelatedData();
+        }
+
+        return null;
+    }
+
 }

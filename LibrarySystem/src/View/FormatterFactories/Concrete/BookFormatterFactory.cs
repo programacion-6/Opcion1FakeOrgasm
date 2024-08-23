@@ -2,17 +2,26 @@ namespace LibrarySystem;
 
 public class BookFormatterFactory : IEntityFormatterFactory<Book>
 {
-    public IEntityFormatter<Book> CreateFormatter(Book entity, FormatType formatType)
+    public IEntityFormatter<Book>? CreateSimpleFormatter(Book? entity)
     {
-        return formatType switch
+        if (entity is not null)
         {
-            FormatType.Simple
-                => new SimpleBookDetailsFormatter
-                { Entity = entity },
-            FormatType.Detailed
-                => new AllBookDetailsFormatter
-                { Entity = entity },
-            _ => throw new Exception("No formatter found")
-        };
+            var formatter = new SimpleBookFormatter(entity);
+            return formatter;
+        }
+
+        return null;
+    }
+
+    public Task<IEntityFormatter<Book>?> CreateVerboseFormatter(Book? entity)
+    {
+        if (entity is not null)
+        {
+            var formatter = Task.FromResult<IEntityFormatter<Book>?>(
+                new VerboseBookFormatter(entity));
+            return formatter;
+        }
+
+        return Task.FromResult<IEntityFormatter<Book>?>(null);
     }
 }

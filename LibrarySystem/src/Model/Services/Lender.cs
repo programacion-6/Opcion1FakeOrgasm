@@ -25,8 +25,8 @@ public class Lender
             var loan = new Loan()
             {
                 Id = Guid.NewGuid(),
-                Book = book,
-                Patron = patron,
+                BookId = book.Id,
+                PatronId = patron.Id,
                 ReturnDate = DateTime.Now.AddDays(loanTimeInDays)
             };
             loanRepository.Save(loan);

@@ -23,7 +23,7 @@ public class DebtManager
         var fine = new Fine
         {
             Id = Guid.NewGuid(),
-            Loan = loan,
+            LoanId = loan.Id,
             FineAmount = fineAmount,
             WasPayed = false
         };
@@ -31,9 +31,9 @@ public class DebtManager
         return fine;
     }
 
-    public void CreateDebtsAutomatically()
+    public async void CreateDebtsAutomatically()
     {
-        var overdueLoans = loanRepository.GetOverdueLoans();
+        var overdueLoans = await loanRepository.GetOverdueLoans();
         foreach (var loan in overdueLoans)
         {
             CreateFine(loan);

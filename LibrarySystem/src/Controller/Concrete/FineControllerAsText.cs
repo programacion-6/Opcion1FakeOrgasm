@@ -5,15 +5,15 @@ public class FineControllerAsText : IExecutableHandler<string>
     private DebtManager _debtManager;
     private IFineRepository _fineRepository;
     private IMessageRenderer _messageRenderer;
-    private IResultRenderer<Fine> _fineRenderer;
+    private IEntityFormatterFactory<Fine> _fineFormatterFactory;
     private EntitySelectorByConsole<Fine> _fineSelector;
 
-    public FineControllerAsText(DebtManager debtManager, IFineRepository fineRepository, IMessageRenderer messageRenderer, IResultRenderer<Fine> fineRenderer, EntitySelectorByConsole<Fine> fineSelector)
+    public FineControllerAsText(DebtManager debtManager, IFineRepository fineRepository, IMessageRenderer messageRenderer, IEntityFormatterFactory<Fine> fineFormatterFactory, EntitySelectorByConsole<Fine> fineSelector)
     {
         _debtManager = debtManager;
         _fineRepository = fineRepository;
         _messageRenderer = messageRenderer;
-        _fineRenderer = fineRenderer;
+        _fineFormatterFactory = fineFormatterFactory;
         _fineSelector = fineSelector;
     }
 
@@ -42,13 +42,13 @@ public class FineControllerAsText : IExecutableHandler<string>
     public void ShowFines()
     {
         var fines = _fineRepository.GetAll();
-        _fineRenderer.RenderResults(fines);
+        RenderFinesFound(fines);
     }
 
     public void ShowActiveFines()
     {
         var fines = _fineRepository.GetActiveFines();
-        _fineRenderer.RenderResults(fines);
+        RenderFinesFound(fines);
     }
 
     private void MarkAsPaid()
@@ -60,5 +60,14 @@ public class FineControllerAsText : IExecutableHandler<string>
             _debtManager.MarkAsPaid(fine);
             _messageRenderer.RenderSuccessMessage("debt paid");
         }
+    }
+
+    private void RenderFinesFound(List<Fine> finesFound)
+    {
+        var finesFormatted = finesFound.Select
+            (book => _fineFormatterFactory
+                    .CreateFormatter(book, FormatType.Simple))
+                    .ToList();
+        ResultRenderer.RenderResults(finesFormatted);
     }
 }

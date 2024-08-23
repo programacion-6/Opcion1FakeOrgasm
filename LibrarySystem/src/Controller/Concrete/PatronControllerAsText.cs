@@ -8,9 +8,9 @@ public class PatronControllerAsText : IExecutableHandler<string>
     private IEntityUpdater<Patron, string> _patronUpdater;
     private IEntityEliminator<Patron, string> _patronEliminator;
     private IMessageRenderer _messageRenderer;
-    private IResultRenderer<Patron> _patronRenderer;
+    private IEntityFormatterFactory<Patron> _patronFormatterFactory;
 
-    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, IMessageRenderer messageRenderer, IResultRenderer<Patron> patronRenderer)
+    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, IMessageRenderer messageRenderer, IEntityFormatterFactory<Patron> patronFormatterFactoryr)
     {
         _repository = repository;
         _patronCreator = patronCreator;
@@ -18,7 +18,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
         _patronEliminator = patronEliminator;
         _receiver = receiver;
         _messageRenderer = messageRenderer;
-        _patronRenderer = patronRenderer;
+        _patronFormatterFactory = patronFormatterFactoryr;
     }
 
     public void Execute(string inputReceived)
@@ -35,7 +35,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
                 _patronUpdater.TryToUpdateEntity();
                 break;
             case "show all":
-                _patronRenderer.RenderResults(_repository.GetAll());
+                ShowAll();
                 break;
             case "find by name":
                 FindPatronByName();
@@ -49,12 +49,18 @@ public class PatronControllerAsText : IExecutableHandler<string>
         }
     }
 
+    private void ShowAll()
+    {
+        var allPatrons = _repository.GetAll();
+        RenderPatronsFound(allPatrons);
+    }
+
     private void FindPatronByName()
     {
         _messageRenderer.RenderSimpleMessage("Enter the name:");
         var name = _receiver.ReceiveInput();
         var patronFound = _repository.GetByName(name);
-        _patronRenderer.RenderResult(patronFound);
+        RenderPatronFound(patronFound);
     }
 
     private void FindPatronByMembershipNumber()
@@ -66,8 +72,29 @@ public class PatronControllerAsText : IExecutableHandler<string>
             _messageRenderer.RenderErrorMessage("invalid input");
         }
         var patronFound = _repository.GetByMembershipNumber(membershipNumber);
-        _patronRenderer.RenderResult(patronFound);
+        RenderPatronFound(patronFound);
+    }
 
+    private void RenderPatronFound(Patron? bookFound)
+    {
+        if (bookFound is not null)
+        {
+            var bookFormated = _patronFormatterFactory.CreateFormatter(bookFound, FormatType.Detailed);
+            ResultRenderer.RenderResult(bookFormated);
+        }
+        else
+        {
+            ResultRenderer.RenderResult(bookFound);
+        }
+    }
+
+    private void RenderPatronsFound(List<Patron> booksFound)
+    {
+        var booksFormated = booksFound.Select
+            (book => _patronFormatterFactory
+                    .CreateFormatter(book, FormatType.Simple))
+                    .ToList();
+        ResultRenderer.RenderResults(booksFormated);
     }
 
 }

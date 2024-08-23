@@ -6,23 +6,25 @@ public class ReporterControllerAsText : IExecutableHandler<string>
     private StatisticsGenerator _statisticsGenerator;
     private IPatronRepository _patronRepository;
     private IMessageRenderer _messageRenderer;
-    private IResultRenderer<Book> _bookRenderer;
-    private IResultRenderer<Patron> _patronRenderer;
-    private IResultRenderer<Loan> _loanRenderer;
+    private IEntityFormatterFactory<Book> _bookFormatterFactory;
+    private IEntityFormatterFactory<Patron> _patronFormatterFactory;
+    private IEntityFormatterFactory<Loan> _loanFormatterFactory;
+    private IEntityFormatterFactory<Fine> _fineFormatterFactory;
     private EntitySelectorByConsole<Patron> _patronSelector;
 
 
-    public ReporterControllerAsText(Reporter reporter, StatisticsGenerator statisticsGenerator, IPatronRepository patronRepository, IResultRenderer<Book> bookRenderer, IResultRenderer<Patron> patronRenderer, IResultRenderer<Loan> loanRenderer, IMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector)
+    public ReporterControllerAsText(Reporter reporter, StatisticsGenerator statisticsGenerator, IPatronRepository patronRepository, IEntityFormatterFactory<Book> bookFormatterFactory, IEntityFormatterFactory<Patron> patronFormatterFactory, IEntityFormatterFactory<Loan> loanFormatterFactory, IMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector, IEntityFormatterFactory<Fine> fineFormatterFactory)
     {
         _reporter = reporter;
         _statisticsGenerator = statisticsGenerator;
         _patronRepository = patronRepository;
 
-        _bookRenderer = bookRenderer;
-        _patronRenderer = patronRenderer;
-        _loanRenderer = loanRenderer;
+        _bookFormatterFactory = bookFormatterFactory;
+        _patronFormatterFactory = patronFormatterFactory;
+        _loanFormatterFactory = loanFormatterFactory;
         _messageRenderer = messageRenderer;
         _patronSelector = patronSelector;
+        _fineFormatterFactory = fineFormatterFactory;
     }
 
     public void Execute(string inputReceived)
@@ -59,13 +61,21 @@ public class ReporterControllerAsText : IExecutableHandler<string>
     public void ShowOverdueBooks()
     {
         var books = _reporter.GetOverdueBooks();
-        _bookRenderer.RenderResults(books);
+        var booksFormatted = books.Select
+            (book => _bookFormatterFactory
+                    .CreateFormatter(book, FormatType.Simple))
+                    .ToList();
+        ResultRenderer.RenderResults(booksFormatted);
     }
 
     public void ShowCurrentlyBorrowedBooks()
     {
         var books = _reporter.GetCurrentlyBorrowedBooks();
-        _bookRenderer.RenderResults(books);
+        var booksFormatted = books.Select
+            (book => _bookFormatterFactory
+                    .CreateFormatter(book, FormatType.Simple))
+                    .ToList();
+        ResultRenderer.RenderResults(booksFormatted);
     }
 
     public void ShowCurrentLoansByPatron()
@@ -78,7 +88,11 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         if (patron is not null)
         {
             var loans = _reporter.GetLoansByPatron(patron);
-            _loanRenderer.RenderResults(loans);
+            var loansFormatted = loans.Select
+                    (loan => _loanFormatterFactory
+                            .CreateFormatter(loan, FormatType.Simple))
+                            .ToList();
+            ResultRenderer.RenderResults(loansFormatted);
         }
     }
 
@@ -91,7 +105,11 @@ public class ReporterControllerAsText : IExecutableHandler<string>
             var loans = _reporter.GetLoansByPatron(patron);
             if (loans.Any())
             {
-                _loanRenderer.RenderResults(loans);
+                var loansFormatted = loans.Select
+                        (loan => _loanFormatterFactory
+                            .CreateFormatter(loan, FormatType.Simple))
+                            .ToList();
+                ResultRenderer.RenderResults(loansFormatted);
             }
             else
             {
@@ -103,13 +121,21 @@ public class ReporterControllerAsText : IExecutableHandler<string>
     public void ShowMostBorrowedBooks()
     {
         var books = _statisticsGenerator.GetMostBorrowedBooks();
-        _bookRenderer.RenderResults(books);
+        var booksFormatted = books.Select
+            (book => _bookFormatterFactory
+                    .CreateFormatter(book, FormatType.Simple))
+                    .ToList();
+        ResultRenderer.RenderResults(booksFormatted);
     }
 
     public void ShowMostActivePatrons()
     {
         var patrons = _statisticsGenerator.GetMostActivePatrons();
-        _patronRenderer.RenderResults(patrons);
+        var patronsFormatted = patrons.Select
+            (patron => _patronFormatterFactory
+                    .CreateFormatter(patron, FormatType.Simple))
+                    .ToList();
+        ResultRenderer.RenderResults(patronsFormatted);
     }
 
     public void ShowPatronsFines()
@@ -117,12 +143,16 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         var patronsFines = _statisticsGenerator.GetPatronsFines();
         if (patronsFines.Any())
         {
-
             foreach (var tuple in patronsFines)
             {
                 var patron = tuple.Item1;
-                var fines = String.Join(", ", tuple.Item2);
-                _patronRenderer.RenderResultWith(patron, fines);
+                var patronFormatted = _patronFormatterFactory.CreateFormatter(patron, FormatType.Simple);
+                var fines = tuple.Item2;
+                var finesFormatted = fines
+                            .Select(fine => _fineFormatterFactory
+                                .CreateFormatter(fine, FormatType.Simple))
+                            .ToList();
+                ResultRenderer.RenderResultWithListOf(patronFormatted, finesFormatted);
             }
         }
         else

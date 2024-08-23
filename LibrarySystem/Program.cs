@@ -8,11 +8,6 @@ class Program
         IMessageRenderer messageRenderer = new ConsoleMessageRenderer();
         AbstractViewChanger<string> viewChanger = new ConsoleViewChanger();
 
-        IResultRenderer<Book> bookRenderer = new ConsoleBookRenderer();
-        IResultRenderer<Patron> patronRenderer = new ConsolePatronRenderer();
-        IResultRenderer<Fine> fineRenderer = new ConsoleFineRenderer();
-        IResultRenderer<Loan> loanRenderer = new ConsoleLoanRenderer();
-
         IBookRepository bookRepository = new BookRepository();
         IPatronRepository patronRepository = new PatronRepository();
         ILoanRepository loanRepository = new LoanRepository();
@@ -27,9 +22,14 @@ class Program
         IEntityRequester<Book> bookRequester = new BookRequesterByConsole(messageRenderer, receiver);
         IEntityRequester<Patron> patronRequester = new PatronRequesterByConsole(receiver, messageRenderer);
 
-        EntitySelectorByConsole<Book> bookSelectorByConsole = new EntitySelectorByConsole<Book>(bookRenderer, messageRenderer, receiver);
-        EntitySelectorByConsole<Patron> patronSelectorByConsole = new EntitySelectorByConsole<Patron>(patronRenderer, messageRenderer, receiver);
-        EntitySelectorByConsole<Fine> fineSelectorByConsole = new EntitySelectorByConsole<Fine>(fineRenderer, messageRenderer, receiver);
+        IEntityFormatterFactory<Book> bookFormatterFactory = new BookFormatterFactory();
+        IEntityFormatterFactory<Patron> patronFormatterFactory = new PatronFormatterFactory();
+        IEntityFormatterFactory<Loan> loanFormatterFactory = new LoanFormatterFactory();
+        IEntityFormatterFactory<Fine> fineFormatterFactory = new FineFormatterFactory();
+
+        EntitySelectorByConsole<Book> bookSelectorByConsole = new EntitySelectorByConsole<Book>(messageRenderer, bookFormatterFactory);
+        EntitySelectorByConsole<Patron> patronSelectorByConsole = new EntitySelectorByConsole<Patron>(messageRenderer, patronFormatterFactory);
+        EntitySelectorByConsole<Fine> fineSelectorByConsole = new EntitySelectorByConsole<Fine>(messageRenderer, fineFormatterFactory);
 
         IEntityCreator<Book, string> bookCreator = new EntityCreatorByConsole<Book>(bookRepository, bookRequester, messageRenderer);
         IEntityUpdater<Book, string> bookUpdater = new EntityUpdaterByConsole<Book>(bookRepository, bookRequester, messageRenderer, bookSelectorByConsole);
@@ -39,11 +39,11 @@ class Program
         IEntityUpdater<Patron, string> patronUpdater = new EntityUpdaterByConsole<Patron>(patronRepository, patronRequester, messageRenderer, patronSelectorByConsole);
         IEntityEliminator<Patron, string> patronEliminator = new EntityEliminatorByConsole<Patron>(patronRepository, messageRenderer, patronSelectorByConsole);
 
-        IExecutableHandler<string> bookController = new BookControllerAsText(bookRepository, bookCreator, bookUpdater, bookEliminator, bookRenderer, receiver, messageRenderer);
-        IExecutableHandler<string> patronController = new PatronControllerAsText(patronRepository, patronCreator, patronUpdater, patronEliminator, receiver, messageRenderer, patronRenderer);
+        IExecutableHandler<string> bookController = new BookControllerAsText(bookRepository, bookCreator, bookUpdater, bookEliminator, bookFormatterFactory, receiver, messageRenderer);
+        IExecutableHandler<string> patronController = new PatronControllerAsText(patronRepository, patronCreator, patronUpdater, patronEliminator, receiver, messageRenderer, patronFormatterFactory);
         IExecutableHandler<string> lenderController = new LoanControllerAsText(lender, loanRepository, patronRepository, bookRepository, receiver, messageRenderer, patronSelectorByConsole, bookSelectorByConsole);
-        IExecutableHandler<string> fineController = new FineControllerAsText(debtManager, fineRepository, messageRenderer, fineRenderer, fineSelectorByConsole);
-        IExecutableHandler<string> reportController = new ReporterControllerAsText(reporter, statisticsGenerator, patronRepository, bookRenderer, patronRenderer, loanRenderer, messageRenderer, patronSelectorByConsole);
+        IExecutableHandler<string> fineController = new FineControllerAsText(debtManager, fineRepository, messageRenderer, fineFormatterFactory, fineSelectorByConsole);
+        IExecutableHandler<string> reportController = new ReporterControllerAsText(reporter, statisticsGenerator, patronRepository, bookFormatterFactory, patronFormatterFactory, loanFormatterFactory, messageRenderer, patronSelectorByConsole, fineFormatterFactory);
 
         Dictionary<MenuView, IExecutableHandler<string>> controllers = new Dictionary<MenuView, IExecutableHandler<string>>
         {

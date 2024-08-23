@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="src/Controller/" />
     <Folder Include="src/Controller/Concrete/" />
     <Folder Include="src/Controller/CrudHandlers/" />
     <Folder Include="src/Controller/CrudHandlers/ConsoleCrudHandlers/" />

@@ -22,33 +22,34 @@ public class BookControllerAsText : IExecutableHandler<string>
         _messageRenderer = messageRenderer;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "new":
-                _bookCreator.TryToCreateEntity();
+                await _bookCreator.TryToCreateEntity();
                 break;
             case "delete":
-                _bookEliminator.TryToDeleteEntity();
+                await _bookEliminator.TryToDeleteEntity();
                 break;
             case "update":
-                _bookUpdater.TryToUpdateEntity();
+                await _bookUpdater.TryToUpdateEntity();
                 break;
             case "show all":
-                _rendererBooks.RenderResults(_repository.GetAll());
+                var allBooks = await _repository.GetAll();
+                _rendererBooks.RenderResults(allBooks.ToList());
                 break;
             case "show by genre":
-                FindBooksByGenre();
+                await FindBooksByGenre();
                 break;
             case "find by title":
-                FindBookByTitle();
+                await FindBookByTitle();
                 break;
             case "find by author":
-                FindBookByAuthor();
+                await FindBookByAuthor();
                 break;
             case "find by ISBN":
-                FindBookByISBN();
+                await FindBookByISBN();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -56,35 +57,35 @@ public class BookControllerAsText : IExecutableHandler<string>
         }
     }
 
-    private void FindBooksByGenre()
+    private async Task FindBooksByGenre()
     {
         _messageRenderer.RenderSimpleMessage("Enter the genre:");
         var genre = _receiver.ReceiveInput();
-        var booksFound = _repository.GetBooksByGenre(genre);
-        _rendererBooks.RenderResults(booksFound);
+        var booksFound = await _repository.GetBooksByGenre(genre);
+        _rendererBooks.RenderResults(booksFound.ToList());
     }
 
-    private void FindBookByTitle()
+    private async Task FindBookByTitle()
     {
         _messageRenderer.RenderSimpleMessage("Enter the title:");
         var title = _receiver.ReceiveInput();
-        var bookFound = _repository.GetByTitle(title);
+        var bookFound = await _repository.GetByTitle(title);
         _rendererBooks.RenderResult(bookFound);
     }
 
-    private void FindBookByAuthor()
+    private async Task FindBookByAuthor()
     {
         _messageRenderer.RenderSimpleMessage("Enter the author:");
         var author = _receiver.ReceiveInput();
-        var bookFound = _repository.GetByAuthor(author);
+        var bookFound = await _repository.GetByAuthor(author);
         _rendererBooks.RenderResult(bookFound);
     }
 
-    private void FindBookByISBN()
+    private async Task FindBookByISBN()
     {
         _messageRenderer.RenderSimpleMessage("Enter the ISBN:");
         var ISBN = _receiver.ReceiveInput();
-        var bookFound = _repository.GetByISBN(ISBN);
+        var bookFound = await _repository.GetByISBN(ISBN);
         _rendererBooks.RenderResult(bookFound);
     }
 

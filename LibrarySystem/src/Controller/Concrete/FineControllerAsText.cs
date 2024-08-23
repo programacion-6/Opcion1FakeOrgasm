@@ -17,21 +17,21 @@ public class FineControllerAsText : IExecutableHandler<string>
         _fineSelector = fineSelector;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "pay":
-                MarkAsPaid();
+                await MarkAsPaid();
                 break;
             case "make":
                 _debtManager.CreateDebtsAutomatically();
                 break;
             case "show all":
-                ShowFines();
+                await ShowFines();
                 break;
             case "show actives":
-                ShowActiveFines();
+                await ShowActiveFines();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -39,22 +39,22 @@ public class FineControllerAsText : IExecutableHandler<string>
         }
     }
 
-    public void ShowFines()
+    private async Task ShowFines()
     {
-        var fines = _fineRepository.GetAll();
-        _fineRenderer.RenderResults(fines);
+        var fines = await _fineRepository.GetAll();
+        _fineRenderer.RenderResults(fines.ToList());
     }
 
-    public void ShowActiveFines()
+    private async Task ShowActiveFines()
     {
-        var fines = _fineRepository.GetActiveFines();
-        _fineRenderer.RenderResults(fines);
+        var fines = await _fineRepository.GetActiveFines();
+        _fineRenderer.RenderResults(fines.ToList());
     }
 
-    private void MarkAsPaid()
+    private async Task MarkAsPaid()
     {
-        var activeFines = _fineRepository.GetActiveFines();
-        Fine? fine = _fineSelector.TryToSelectAtLeastOne(activeFines);
+        var activeFines = await _fineRepository.GetActiveFines();
+        Fine? fine = _fineSelector.TryToSelectAtLeastOne(activeFines.ToList());
         if (fine is not null)
         {
             _debtManager.MarkAsPaid(fine);

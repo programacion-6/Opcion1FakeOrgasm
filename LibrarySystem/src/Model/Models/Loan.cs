@@ -2,17 +2,39 @@
 
 public class Loan : EntityBase
 {
-    public required Book Book { get; set; }
-    public required Patron Patron { get; set; }
-    public DateTime LoanDate { get; set; } = DateTime.Now;
-    public required DateTime ReturnDate { get; set; }
-    public bool WasReturn { get; set; } = false;
+    private Guid _idBook;
+    private Guid _idPatron;
+    private DateTime _loanDate = DateTime.Now;
+    private DateTime _returnDate;
+    private bool _wasReturn = false;
 
-    public override string ToString()
+    public Guid IdBook
     {
-        return "Loan " + (WasReturn ? "returned" : "active") + " | "
-            + LoanDate + " - " + ReturnDate
-            + "\n\tBook: " + Book.Title
-             + "\n\tPatron: " + Patron.Name;
+        get => _idBook;
+        set => _idBook = value;
+    }
+
+    public Guid IdPatron
+    {
+        get => _idPatron;
+        set => _idPatron = value;
+    }
+
+    public DateTime LoanDate
+    {
+        get => _loanDate;
+        set => _loanDate = value;
+    }
+
+    public DateTime ReturnDate
+    {
+        get => _returnDate;
+        set => _returnDate = value;
+    }
+
+    public bool WasReturn
+    {
+        get => _wasReturn;
+        set => _wasReturn = value;
     }
 }

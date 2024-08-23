@@ -57,7 +57,7 @@ public class FineControllerAsText : IExecutableHandler<string>
         Fine? fine = _fineSelector.TryToSelectAtLeastOne(activeFines.ToList());
         if (fine is not null)
         {
-            _debtManager.MarkAsPaid(fine);
+            await _debtManager.MarkAsPaid(fine);
             _messageRenderer.RenderSuccessMessage("debt paid");
         }
     }

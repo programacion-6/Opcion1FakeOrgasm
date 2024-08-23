@@ -23,15 +23,15 @@ public class LoanControllerAsText : IExecutableHandler<string>
         _bookSelector = bookSelector;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "lend":
-                LendBook();
+                await LendBook();
                 break;
             case "return":
-                ReturnBook();
+                await ReturnBook();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -65,23 +65,31 @@ public class LoanControllerAsText : IExecutableHandler<string>
         return wasFound;
     }
 
-    private void ReturnBook()
+    private async Task ReturnBook()
     {
-        var activeLoans = _loanRepository.GetCurrentlyLoans();
-        var patrons = activeLoans.Select(loan => loan.Patron)
-                                    .GroupBy(patron => patron.Id)
-                                    .Select(group => group.First())
-                                    .ToList();
-        var patron = _patronSelector.TryToSelectAtLeastOne(patrons);
+        var activeLoans = await _loanRepository.GetCurrentlyLoans();
+
+        var patronsIds = activeLoans
+            .Select(loan => loan.PatronId)
+            .Distinct()
+            .ToList();
+
+        var patrons = await Task.WhenAll(patronsIds.Select(async patronId => await _patronRepository.GetById(patronId)));
+
+
+        var patron = _patronSelector.TryToSelectAtLeastOne(patrons.ToList());
 
         if (patron is not null)
         {
-            var patronLoans = _loanRepository.GetActiveLoansByPatron(patron);
-            var borrowedBooks = patronLoans.Select(loan => loan.Book).ToList();
-            var bookSelected = _bookSelector.TryToSelectAtLeastOne(borrowedBooks);
+            var patronLoans = await _loanRepository.GetActiveLoansByPatron(patron.Id);
+
+            var borrowedBooks = await Task.WhenAll(
+            patronLoans.Select(async loan => await _bookRepository.GetById(loan.BookId)));
+
+            var bookSelected = _bookSelector.TryToSelectAtLeastOne(borrowedBooks.ToList());
             if (bookSelected is not null)
             {
-                var loanSelected = patronLoans.FirstOrDefault(loan => loan.Book.Id == bookSelected.Id);
+                var loanSelected = patronLoans.FirstOrDefault(loan => loan.BookId == bookSelected.Id);
 #pragma warning disable CS8604
                 _lender.ReturnBook(loanSelected);
 #pragma warning restore CS8604
@@ -91,18 +99,20 @@ public class LoanControllerAsText : IExecutableHandler<string>
         }
     }
 
-    private void LendBook()
+    private async Task LendBook()
     {
-        var borrowedBooksIds = _loanRepository.GetCurrentlyLoans()
-                                            .Select(loan => loan.Book.Id)
-                                            .ToList();
-        var booksAvailable = _bookRepository.GetAll()
-                            .Where(book => !borrowedBooksIds.Contains(book.Id))
-                            .ToList();
+        var borrowedBooksIds = (await _loanRepository.GetCurrentlyLoans())
+                                .Select(loan => loan.BookId)
+                                .ToList();
+
+        var booksAvailable = (await _bookRepository.GetAll())
+                                .Where(book => !borrowedBooksIds.Contains(book.Id))
+                                .ToList();
+                                
         var book = _bookSelector.TryToSelectAtLeastOne(booksAvailable);
 
-        var allPatrons = _patronRepository.GetAll();
-        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons);
+        var allPatrons = await _patronRepository.GetAll();
+        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
         var isValidToLoan = TheBookWasFound(book) && ThePatronWasFound(patron);
 
         if (isValidToLoan)

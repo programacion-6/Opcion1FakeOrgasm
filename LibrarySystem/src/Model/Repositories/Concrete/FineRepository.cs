@@ -18,7 +18,7 @@ public class FineRepository : BaseRepository<Fine>, IFineRepository
     public List<Fine> GetFinesByPatron(Patron patron)
     {
         return Data.Values
-                   .Where(fine => fine.Loan.Patron.Id == patron.Id)
+                   .Where(fine => fine.Loan.IdPatron == patron.Id)
                    .ToList();
     }
 }

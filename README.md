@@ -26,6 +26,23 @@ This analysis was based on the Requirements Diagram shown below:
 ---
 ## How to use?
 
+Before to start running proyect, you need to have started docker service:
+- If you are on Windows, make sure that you have Docker Desktop on execution.
+- If you are on Ubuntu, start docker with the following command:
+    ```
+    sudo systemctl start docker
+    ```
+Then at the root of the proyect you need to execute the following command:
+```
+docker-compose up -d
+```
+
+Then into `/LibrarySystem` you can execute normally the command:
+```
+dotnet run
+```
+To start using the system library
+
 The application works with commands, there are commands to change views or handlers and commands for each of them:
 
 ### Change view

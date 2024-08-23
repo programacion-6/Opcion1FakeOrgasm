@@ -2,23 +2,23 @@
 {
     public class Fine : EntityBase
     {
-        private Guid _idLoan;
+        private Guid _loanId;
         private double _fineAmount;
         private bool _wasPayed = false;
 
-        public Guid IdLoan
+        public required Guid LoanId
         {
-            get => _idLoan;
-            set => _idLoan = value;
+            get => _loanId;
+            set => _loanId = value;
         }
 
-        public double FineAmount
+        public required double FineAmount
         {
             get => _fineAmount;
             set => _fineAmount = value;
         }
 
-        public bool WasPayed
+        public required bool WasPayed
         {
             get => _wasPayed;
             set => _wasPayed = value;

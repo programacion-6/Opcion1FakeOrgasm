@@ -90,9 +90,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
             if (bookSelected is not null)
             {
                 var loanSelected = patronLoans.FirstOrDefault(loan => loan.BookId == bookSelected.Id);
-#pragma warning disable CS8604
                 await _lender.ReturnBook(loanSelected);
-#pragma warning restore CS8604
                 _messageRenderer.RenderSuccessMessage("returned book");
 
             }
@@ -119,33 +117,23 @@ public class LoanControllerAsText : IExecutableHandler<string>
 
         if (isValidToLoan)
         {
-            _messageRenderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
-        }
-        catch (Exception ex)
-        {
-            _messageRenderer.RenderErrorMessage(ex.Message);
-        }
-    }
-
-    private int GetLoanTimeInDays()
-    {
-        _messageRenderer.RenderSimpleMessage("enter the days of loan:");
-        int loanTimeInDays;
-        string loanTimeInput;
-        bool isValidTime;
-        do
-        {
-            loanTimeInput = _receiver.ReceiveInput();
-            isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
-            if (!isValidTime)
+            try
             {
-                _messageRenderer.RenderErrorMessage("enter a number plase");
-            }
-        } while (!isValidTime);
+                _messageRenderer.RenderSimpleMessage("enter the days of loan:");
+                int loanTimeInDays;
+                string loanTimeInput;
+                bool isValidTime;
+                do
+                {
+                    loanTimeInput = _receiver.ReceiveInput();
+                    isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
+                    if (!isValidTime)
+                    {
+                        _messageRenderer.RenderErrorMessage("enter a number plase");
+                    }
+                } while (!isValidTime);
 
-#pragma warning disable CS8604
                 await _lender.LendBook(book, patron, loanTimeInDays);
-#pragma warning restore CS8604
                 _messageRenderer.RenderSuccessMessage("successful loan");
 
             }
@@ -156,7 +144,6 @@ public class LoanControllerAsText : IExecutableHandler<string>
             catch (Exception ex)
             {
                 _messageRenderer.RenderErrorMessage(ex.Message);
-
             }
         }
     }

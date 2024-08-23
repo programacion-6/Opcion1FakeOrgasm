@@ -2,22 +2,22 @@
 
 public class Loan : EntityBase
 {
-    private Guid _idBook;
-    private Guid _idPatron;
+    private Guid _bookId;
+    private Guid _patronId;
     private DateTime _loanDate = DateTime.Now;
     private DateTime _returnDate;
     private bool _wasReturn = false;
 
-    public Guid IdBook
+    public required Guid BookId
     {
-        get => _idBook;
-        set => _idBook = value;
+        get => _bookId;
+        set => _bookId = value;
     }
 
-    public Guid IdPatron
+    public required  Guid PatronId
     {
-        get => _idPatron;
-        set => _idPatron = value;
+        get => _patronId;
+        set => _patronId = value;
     }
 
     public DateTime LoanDate
@@ -26,7 +26,7 @@ public class Loan : EntityBase
         set => _loanDate = value;
     }
 
-    public DateTime ReturnDate
+    public required DateTime ReturnDate
     {
         get => _returnDate;
         set => _returnDate = value;

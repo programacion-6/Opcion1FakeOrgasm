@@ -70,9 +70,12 @@ public class StatisticsGenerator
     public List<Tuple<Patron, List<Fine>>> GetPatronsFines()
     {
         var fines = _fineRepository.GetAll();
+        var loans = _loanRepository.GetAll();
+
+        var loanIdToPatronId = loans.ToDictionary(loan => loan.Id, loan => loan.IdPatron);
 
         var patronIds = fines
-            .GroupBy(fine => fine.Loan.IdPatron)
+            .GroupBy(fine => loanIdToPatronId.GetValueOrDefault(fine.IdLoan))
             .Select(group => new
             {
                 IdPatron = group.Key,

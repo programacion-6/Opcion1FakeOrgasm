@@ -1,4 +1,5 @@
 using LibrarySystem.Controller.BookManagement;
+using LibrarySystem.Controller.PatronManagement;
 
 namespace LibrarySystem;
 
@@ -50,7 +51,6 @@ class Program
         EntityRendererAsConsolePages<Book> bookRendererAsPages = new EntityRendererAsConsolePages<Book>(bookRepository, bookFormatterFactory);
         EntityRendererAsConsolePages<Patron> patronRendererAsPages = new EntityRendererAsConsolePages<Patron>(patronRepository, patronFormatterFactory);
 
-        IExecutableHandler<string> patronController = new PatronControllerAsText(patronRepository, patronCreator, patronUpdater, patronEliminator, messageRenderer, patronFormatterFactory, patronRendererAsPages);
         IExecutableHandler<string> lenderController = new LoanControllerAsText(lender, loanRepository, patronRepository, bookRepository, messageRenderer, patronSelectorByConsole, bookSelectorByConsole);
         IExecutableHandler<string> fineController = new FineControllerAsText(debtManager, fineRepository, messageRenderer, fineFormatterFactory, fineSelectorByConsole);
         IExecutableHandler<string> reportController = new ReporterControllerAsText(reporter, statisticsGenerator, patronRepository, bookFormatterFactory, patronFormatterFactory, loanFormatterFactory, messageRenderer, patronSelectorByConsole, fineFormatterFactory);
@@ -62,7 +62,13 @@ class Program
             bookFormatterFactory,
             bookRendererAsPages);
         
-
+        IExecutableHandler<string> patronController = new PatronControllerAsText(
+            messageRenderer,
+            patronFormatterFactory,
+            new PatronInterfaceHandler(patronCreator, patronUpdater, patronEliminator),
+            new PatronSearcher(patronRepository, patronFormatterFactory),
+            patronRendererAsPages);
+        
         Dictionary<MenuView, IExecutableHandler<string>> controllers = new Dictionary<MenuView, IExecutableHandler<string>>
         {
             {MenuView.BOOK_HANDLER, bookController},

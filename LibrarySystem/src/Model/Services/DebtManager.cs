@@ -23,7 +23,7 @@ public class DebtManager
         var fine = new Fine
         {
             Id = Guid.NewGuid(),
-            Loan = loan,
+            IdLoan = loan.Id,
             FineAmount = fineAmount,
             WasPayed = false
         };

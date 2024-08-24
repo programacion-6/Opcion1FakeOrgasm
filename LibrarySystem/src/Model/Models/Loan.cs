@@ -14,7 +14,7 @@ public class Loan : EntityBase
         set => _bookId = value;
     }
 
-    public required  Guid PatronId
+    public required Guid PatronId
     {
         get => _patronId;
         set => _patronId = value;
@@ -36,13 +36,5 @@ public class Loan : EntityBase
     {
         get => _wasReturn;
         set => _wasReturn = value;
-    }
-
-    public override string ToString()
-    {
-        return "Loan " + (WasReturn ? "returned" : "active") + " | "
-            + LoanDate + " - " + ReturnDate
-            + "\n\tBook: " + BookId
-             + "\n\tPatron: " + PatronId;
     }
 }

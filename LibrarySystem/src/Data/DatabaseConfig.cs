@@ -9,6 +9,16 @@ public class DatabaseConfig
 
     public DatabaseConfig()
     {
+       _connectionString = CreateConnectionString();
+    }
+
+    public string ConnectionString
+    {
+        get => _connectionString;
+    }
+
+    private string CreateConnectionString()
+    {
         DotNetEnv.Env.Load();
 
         var host = Environment.GetEnvironmentVariable("DB_HOST");
@@ -17,7 +27,9 @@ public class DatabaseConfig
         var user = Environment.GetEnvironmentVariable("DB_USER");
         var password = Environment.GetEnvironmentVariable("DB_PASS");
 
-        _connectionString = $"Host={host};Port={port};Username={user};Password={password};Database={dbName}";
+        var connectionString = $"Host={host};Port={port};Username={user};Password={password};Database={dbName}";
+        
+        return connectionString;
     }
 
     public NpgsqlConnection CreateConnection() => new NpgsqlConnection(_connectionString);
@@ -33,7 +45,7 @@ public class DatabaseConfig
                 Genre VARCHAR(100),
                 PublicationYear INT
             );";
-        
+
         var createPatronsTable = @"
             CREATE TABLE IF NOT EXISTS Patrons (
                 Id UUID PRIMARY KEY,

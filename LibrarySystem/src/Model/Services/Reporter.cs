@@ -21,7 +21,10 @@ public class Reporter
         foreach (var loan in currentlyLoans)
         {
             var book = await _bookRepository.GetById(loan.BookId);
-            currentlyBorrowedBooks.Add(book);
+            if (book is not null)
+            {
+                currentlyBorrowedBooks.Add(book);
+            }
         }
 
         return currentlyBorrowedBooks;
@@ -35,7 +38,10 @@ public class Reporter
         foreach (var loan in currentlyLoans)
         {
             var patron = await _patronRepository.GetById(loan.PatronId);
-            currentlyBorrowedPatrons.Add(patron);
+            if (patron is not null)
+            {
+                currentlyBorrowedPatrons.Add(patron);
+            }
         }
 
         return currentlyBorrowedPatrons;
@@ -49,7 +55,10 @@ public class Reporter
         foreach (var loan in overdueLoans)
         {
             var book = await _bookRepository.GetById(loan.BookId);
-            overdueBooks.Add(book);
+            if (book is not null)
+            {
+                overdueBooks.Add(book);
+            }
         }
 
         return overdueBooks;

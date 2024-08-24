@@ -19,7 +19,7 @@ public class EntityUpdaterByConsole<T> : IEntityUpdater<T, string> where T : Ent
     {
         var entities = await _repository.GetAll();
         
-        var entity = _entitySelector.TryToSelectAtLeastOne(entities.ToList());
+        var entity = await _entitySelector.TryToSelectAtLeastOne(entities.ToList());
         if (entity is not null)
         {
             var newEntityData = _entityRequester.AskForEntity();

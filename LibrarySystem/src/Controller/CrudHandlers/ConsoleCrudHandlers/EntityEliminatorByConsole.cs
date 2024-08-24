@@ -16,7 +16,7 @@ public class EntityEliminatorByConsole<T> : IEntityEliminator<T, string> where T
     public async Task TryToDeleteEntity()
     {
         var entities = await _repository.GetAll();
-        var entity = _entitySelector.TryToSelectAtLeastOne(entities.ToList());
+        var entity = await _entitySelector.TryToSelectAtLeastOne(entities.ToList());
         if (entity is not null)
         {
             var wasDeleted = await _repository.Delete(entity.Id);

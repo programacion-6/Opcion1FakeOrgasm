@@ -2,31 +2,17 @@ namespace LibrarySystem;
 
 public class VerboseFineFormatter : IEntityVerboseFormatter<Fine>
 {
-    private readonly Fine _entity;
     private readonly ILoanRepository _loanRepository;
     private Loan? _loan;
 
-    public VerboseFineFormatter(Fine entity, ILoanRepository loanRepository)
+    public VerboseFineFormatter(Fine entity, ILoanRepository loanRepository) : base(entity)
     {
-        _entity = entity;
         _loanRepository = loanRepository;
-    }
-
-    public async Task LoadRelatedData()
-    {
-        _loan = await _loanRepository.GetById(_entity.LoanId);
-    }
-
-    public override string ToString()
-    {
-        return "Fine: " + _entity.FineAmount + "$ | "
-                    + (_entity.WasPayed ? "paid" : "active")
-                    + "\n\tLoan:" + GetLoanFormatted();
     }
 
     private string GetLoanFormatted()
     {
-        var loanFormatted = "no loaded";
+        var loanFormatted = "[lightsteelblue1] no loaded [/]";
 
         if (_loan is not null)
         {
@@ -36,8 +22,19 @@ public class VerboseFineFormatter : IEntityVerboseFormatter<Fine>
         return loanFormatted;
     }
 
-    public Fine Entity
+    public override async Task LoadRelatedData()
     {
-        get => _entity;
+        _loan = await _loanRepository.GetById(_entity.LoanId);
+
+    }
+
+    public override string ToString()
+    {
+        var statusFineFormatted = _entity.WasPayed ?
+            "$ | [bold green] paid [/]" :
+            "$ | [bold red] active [/]";
+
+        return $"[bold plum3]Fine:[/]" + statusFineFormatted
+        + "\n    [bold]Loan:[/]" + GetLoanFormatted();
     }
 }

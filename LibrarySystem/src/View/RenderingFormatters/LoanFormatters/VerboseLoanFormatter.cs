@@ -2,20 +2,18 @@ namespace LibrarySystem;
 
 public class VerboseLoanFormatter : IEntityVerboseFormatter<Loan>
 {
-    private readonly Loan _entity;
     private readonly IBookRepository _bookRepository;
     private readonly IPatronRepository _patronRepository;
     private Book? _book;
     private Patron? _patron;
 
-    public VerboseLoanFormatter(Loan entity, IBookRepository bookRepository, IPatronRepository patronRepository)
+    public VerboseLoanFormatter(Loan entity, IBookRepository bookRepository, IPatronRepository patronRepository) : base(entity)
     {
-        _entity = entity;
         _bookRepository = bookRepository;
         _patronRepository = patronRepository;
     }
 
-    public async Task LoadRelatedData()
+    public override async Task LoadRelatedData()
     {
         if (Entity is not null)
         {
@@ -24,17 +22,9 @@ public class VerboseLoanFormatter : IEntityVerboseFormatter<Loan>
         }
     }
 
-    public override string ToString()
-    {
-        return "Loan " + (_entity.WasReturn ? "returned" : "active") + " | "
-            + _entity.LoanDate + " - " + _entity.ReturnDate
-            + "\n\tBook: " + GetBookFormatted()
-             + "\n\tPatron: " + GetPatronFormatted();
-    }
-
     private string GetBookFormatted()
     {
-        var bookFormatted = "no loaded";
+        var bookFormatted = "[lightsteelblue1] no loaded [/]";
 
         if (_book is not null)
         {
@@ -46,7 +36,7 @@ public class VerboseLoanFormatter : IEntityVerboseFormatter<Loan>
 
     private string GetPatronFormatted()
     {
-        var patronFormatted = "no loaded";
+        var patronFormatted = "[lightsteelblue1] no loaded [/]";
 
         if (_patron is not null)
         {
@@ -56,8 +46,15 @@ public class VerboseLoanFormatter : IEntityVerboseFormatter<Loan>
         return patronFormatted;
     }
 
-    public Loan Entity
+    public override string ToString()
     {
-        get => _entity;
+        var statusFineFormatted = _entity.WasReturn ?
+            "$ | [bold green] returned [/]" :
+            "$ | [bold red] active [/]";
+
+        return "[bold plum3]Loan:[/]" + statusFineFormatted
+                    + "\n    " + $"[grey74]{_entity.LoanDate} - {_entity.ReturnDate}[/]"
+        + "\n    [bold]Book: [/]" + GetBookFormatted()
+             + "\n    [bold]Patron: [/]" + GetPatronFormatted();
     }
 }

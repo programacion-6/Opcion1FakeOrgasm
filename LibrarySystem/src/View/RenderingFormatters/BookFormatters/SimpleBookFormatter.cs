@@ -2,20 +2,13 @@ namespace LibrarySystem;
 
 public class SimpleBookFormatter : IEntityFormatter<Book>
 {
-    private readonly Book _entity;
-
-    public SimpleBookFormatter(Book entity)
+    public SimpleBookFormatter(Book entity) : base(entity)
     {
-        _entity = entity;
     }
 
     public override string ToString()
     {
-        return _entity.Title + " | " + _entity.Genre;
-    }
-
-    public Book Entity
-    {
-        get => _entity;
+        return $"[bold plum3]{_entity.Title}[/]" + 
+                $"[bold] | {_entity.Genre}[/]";
     }
 }

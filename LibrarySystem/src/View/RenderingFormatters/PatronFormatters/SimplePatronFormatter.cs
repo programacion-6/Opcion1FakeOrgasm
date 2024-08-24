@@ -2,20 +2,12 @@ namespace LibrarySystem;
 
 public class SimplePatronDetailsFormatter : IEntityFormatter<Patron>
 {
-    private readonly Patron _entity;
-
-    public SimplePatronDetailsFormatter(Patron entity)
+    public SimplePatronDetailsFormatter(Patron entity) : base(entity)
     {
-        _entity = entity;
     }
 
     public override string ToString()
     {
-        return _entity.Name;
-    }
-
-    public Patron Entity
-    {
-        get => _entity;
+        return $"[bold plum3]{_entity.Name}[/]";
     }
 }

@@ -2,21 +2,17 @@ namespace LibrarySystem;
 
 public class SimpleLoanFormatter : IEntityFormatter<Loan>
 {
-    private readonly Loan _entity;
-
-    public SimpleLoanFormatter(Loan entity)
+    public SimpleLoanFormatter(Loan entity) : base(entity)
     {
-        _entity = entity;
     }
 
     public override string ToString()
     {
-        return "Loan " + (_entity.WasReturn ? "returned" : "active")
-                    + "\n\t" + _entity.LoanDate + " - " + _entity.ReturnDate;
-    }
+        var statusFineFormatted = _entity.WasReturn ?
+            "$ | [bold green] returned [/]" :
+            "$ | [bold red] active [/]";
 
-    public Loan Entity
-    {
-        get => _entity;
+        return "[bold plum3]Loan:[/]" + statusFineFormatted
+                    + "\n    " + $"[grey74]{_entity.LoanDate} - {_entity.ReturnDate}[/]";
     }
 }

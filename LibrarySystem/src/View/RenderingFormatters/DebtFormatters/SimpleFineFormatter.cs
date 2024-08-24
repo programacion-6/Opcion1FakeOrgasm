@@ -2,21 +2,16 @@ namespace LibrarySystem;
 
 public class SimpleFineFormatter : IEntityFormatter<Fine>
 {
-    private readonly Fine _entity;
-
-    public SimpleFineFormatter(Fine entity)
+    public SimpleFineFormatter(Fine entity) : base(entity)
     {
-        _entity = entity;
     }
 
     public override string ToString()
     {
-        return "Fine: " + _entity.FineAmount + "$ | "
-                + (_entity.WasPayed ? "paid" : "active");
-    }
+        var statusFineFormatted = _entity.WasPayed ?
+            "$ | [bold green] paid [/]" :
+            "$ | [bold red] active [/]";
 
-    public Fine Entity
-    {
-        get => _entity;
+        return $"[bold plum3]Fine:[/]" + statusFineFormatted;
     }
 }

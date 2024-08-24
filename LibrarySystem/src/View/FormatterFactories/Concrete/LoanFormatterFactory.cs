@@ -29,6 +29,8 @@ public class LoanFormatterFactory : IEntityFormatterFactory<Loan>
         {
             var formatter = new VerboseLoanFormatter(entity, _bookRepository, _patronRepository);
             await formatter.LoadRelatedData();
+            
+            return formatter;
         }
 
         return null;

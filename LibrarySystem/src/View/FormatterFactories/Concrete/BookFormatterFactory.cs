@@ -7,6 +7,7 @@ public class BookFormatterFactory : IEntityFormatterFactory<Book>
         if (entity is not null)
         {
             var formatter = new SimpleBookFormatter(entity);
+            
             return formatter;
         }
 
@@ -19,6 +20,7 @@ public class BookFormatterFactory : IEntityFormatterFactory<Book>
         {
             var formatter = Task.FromResult<IEntityFormatter<Book>?>(
                 new VerboseBookFormatter(entity));
+
             return formatter;
         }
 

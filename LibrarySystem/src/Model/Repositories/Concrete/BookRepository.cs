@@ -51,7 +51,7 @@ public class BookRepository : IBookRepository
         }
     }
 
-    public async Task<Book> GetById(Guid id)
+    public async Task<Book?> GetById(Guid id)
     {
         const string sql = "SELECT * FROM Books WHERE Id = @Id";
 
@@ -71,7 +71,7 @@ public class BookRepository : IBookRepository
         }
     }
 
-    public async Task<Book> GetByTitle(string title)
+    public async Task<Book?> GetByTitle(string title)
     {
         const string sql = "SELECT * FROM Books WHERE LOWER(Title) = LOWER(@Title)";
 
@@ -81,7 +81,7 @@ public class BookRepository : IBookRepository
         }
     }
 
-    public async Task<Book> GetByAuthor(string author)
+    public async Task<Book?> GetByAuthor(string author)
     {
         const string sql = "SELECT * FROM Books WHERE LOWER(Author) = LOWER(@Author)";
 
@@ -91,7 +91,7 @@ public class BookRepository : IBookRepository
         }
     }
 
-    public async Task<Book> GetByISBN(string ISBN)
+    public async Task<Book?> GetByISBN(string ISBN)
     {
         const string sql = "SELECT * FROM Books WHERE LOWER(ISBN) = LOWER(@ISBN)";
 

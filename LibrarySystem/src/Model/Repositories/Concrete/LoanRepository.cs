@@ -40,7 +40,7 @@ public class LoanRepository : ILoanRepository
         }
     }
 
-    public async Task<Loan> GetById(Guid id)
+    public async Task<Loan?> GetById(Guid id)
     {
         const string sql = "SELECT * FROM Loans WHERE Id = @Id";
         using (var connection = new NpgsqlConnection(_connectionString))

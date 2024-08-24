@@ -40,7 +40,7 @@ public class FineRepository : IFineRepository
         }
     }
 
-    public async Task<Fine> GetById(Guid id)
+    public async Task<Fine?> GetById(Guid id)
     {
         const string sql = "SELECT * FROM Fines WHERE Id = @Id";
         using (var connection = new NpgsqlConnection(_connectionString))
@@ -49,7 +49,7 @@ public class FineRepository : IFineRepository
         }
     }
 
-    public async Task<Fine> GetByLoan(Guid loanId)
+    public async Task<Fine?> GetByLoan(Guid loanId)
     {
         const string sql = "SELECT * FROM Fines WHERE LoanId = @LoanId";
         using (var connection = new NpgsqlConnection(_connectionString))

@@ -30,7 +30,7 @@ public class PatronRepository : IPatronRepository
         }
     }
 
-    public async Task<Patron> GetById(Guid id)
+    public async Task<Patron?> GetById(Guid id)
     {
         const string sql = "SELECT * FROM Patrons WHERE Id = @Id";
         using (var connection = new NpgsqlConnection(_connectionString))
@@ -39,7 +39,7 @@ public class PatronRepository : IPatronRepository
         }
     }
 
-    public async Task<Patron> GetByMembershipNumber(int membershipNumber)
+    public async Task<Patron?> GetByMembershipNumber(int membershipNumber)
     {
         const string sql = "SELECT * FROM Patrons WHERE MembershipNumber = @MembershipNumber";
         using (var connection = new NpgsqlConnection(_connectionString))
@@ -48,7 +48,7 @@ public class PatronRepository : IPatronRepository
         }
     }
 
-    public async Task<Patron> GetByName(string name)
+    public async Task<Patron?> GetByName(string name)
     {
         const string sql = "SELECT * FROM Patrons WHERE LOWER(Name) = LOWER(@Name)";
         using (var connection = new NpgsqlConnection(_connectionString))

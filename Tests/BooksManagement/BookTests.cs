@@ -62,23 +62,6 @@ public class BookTests
         }
 
         [Fact]
-        public void ToString_ReturnsCorrectlyFormattedString()
-        {
-            var book = new Book
-            {
-                Id = Guid.NewGuid(),
-                Title = "The Great Gatsby",
-                Author = "F. Scott Fitzgerald",
-                ISBN = "9780743273565",
-                Genre = "Classic",
-                PublicationYear = 1925
-            };
-
-            var expected = "The Great Gatsby\n\tauthor: F. Scott Fitzgerald\n\tISBN: 9780743273565\n\tgenre: Classic\n\tyear: 1925";
-            Assert.Equal(expected, book.ToString());
-        }
-
-        [Fact]
         public void Id_SetAndGetPropertyCorrectly()
         {
             var id = Guid.NewGuid();

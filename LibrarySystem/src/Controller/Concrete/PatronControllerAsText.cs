@@ -51,8 +51,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
 
     private async Task ShowAll()
     {
-        var allPatrons = await _repository.GetAll();
-        await RenderVerbosePatronsFormatted(allPatrons.ToList());
+        await PaginatePatrons(async () => (await _repository.GetAll()).ToList());
     }
 
     private async Task FindPatronByName()
@@ -71,12 +70,67 @@ public class PatronControllerAsText : IExecutableHandler<string>
         ResultRenderer.RenderResult(bookFormated);
     }
 
+    private async Task PaginatePatrons(Func<Task<List<Patron>>> getPatrons)
+    {
+        var allPatrons = await getPatrons();
+        int pageSize = 3;  // Define el tamaño de página
+        int currentPage = 0;
+        bool exit = false;
+
+        while (!exit)
+        {
+            // Guardar la posición actual del cursor
+            var top = Console.CursorTop;
+
+            // Obtener los patrones para la página actual
+            var pagePatrons = allPatrons.Skip(currentPage * pageSize).Take(pageSize).ToList();
+
+            // Imprimir la página actual
+            AnsiConsole.Write(new Markup($"[bold underline]Page {currentPage + 1}[/]\n\n"));
+            await RenderVerbosePatronsFormatted(pagePatrons);
+
+            // Mostrar opciones de navegación
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .AddChoices(new[] { "Next", "Previous", "Exit" }));
+
+            switch (choice)
+            {
+                case "Next":
+                    if ((currentPage + 1) * pageSize < allPatrons.Count)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage++;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Previous":
+                    if (currentPage > 0)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage--;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Exit":
+                    exit = true;
+                    break;
+            }
+        }
+    }
+
     private async Task RenderVerbosePatronsFormatted(List<Patron> patrons)
     {
-        var patronsFormated = await Task.WhenAll(patrons.Select(async patron =>
+        var patronsFormatted = await Task.WhenAll(patrons.Select(async patron =>
                                     await _patronFormatterFactory
                                     .CreateVerboseFormatter(patron)));
-        ResultRenderer.RenderResults(patronsFormated.ToList());
+        ResultRenderer.RenderResults(patronsFormatted.ToList());
     }
 
 }

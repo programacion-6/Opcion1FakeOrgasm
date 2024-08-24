@@ -1,4 +1,6 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class FineControllerAsText : IExecutableHandler<string>
 {
@@ -41,14 +43,14 @@ public class FineControllerAsText : IExecutableHandler<string>
 
     private async Task ShowFines()
     {
-        var fines = await _fineRepository.GetAll();
-        await RenderVerboseFinesFormatted(fines.ToList());
+        var allFines = await _fineRepository.GetAll();
+        await PaginateFines(allFines.ToList());
     }
 
     private async Task ShowActiveFines()
     {
-        var fines = await _fineRepository.GetActiveFines();
-        await RenderVerboseFinesFormatted(fines.ToList());
+        var activeFines = await _fineRepository.GetActiveFines();
+        await RenderVerboseFinesFormatted(activeFines.ToList());
     }
 
     private async Task MarkAsPaid()
@@ -62,11 +64,65 @@ public class FineControllerAsText : IExecutableHandler<string>
         }
     }
 
+    private async Task PaginateFines(List<Fine> allFines)
+    {
+        int pageSize = 3; // Tamaño de página
+        int currentPage = 0;
+        bool exit = false;
+
+        while (!exit)
+        {
+            // Guardar la posición actual del cursor
+            var top = Console.CursorTop;
+
+            // Obtener las multas para la página actual
+            var pageFines = allFines.Skip(currentPage * pageSize).Take(pageSize).ToList();
+
+            // Imprimir la página actual
+            AnsiConsole.Write(new Markup($"[bold underline]Page {currentPage + 1}[/]\n\n"));
+            await RenderVerboseFinesFormatted(pageFines);
+
+            // Mostrar opciones de navegación
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .AddChoices(new[] { "Next", "Previous", "Exit" }));
+
+            switch (choice)
+            {
+                case "Next":
+                    if ((currentPage + 1) * pageSize < allFines.Count)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage++;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Previous":
+                    if (currentPage > 0)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage--;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Exit":
+                    exit = true;
+                    break;
+            }
+        }
+    }
+
     private async Task RenderVerboseFinesFormatted(List<Fine> fines)
     {
         var finesFormatted = await Task.WhenAll(fines.Select(async fine =>
-                                    await _fineFormatterFactory
-                                    .CreateVerboseFormatter(fine)));
+                                        await _fineFormatterFactory
+                                        .CreateVerboseFormatter(fine)));
 
         ResultRenderer.RenderResults(finesFormatted.ToList());
     }

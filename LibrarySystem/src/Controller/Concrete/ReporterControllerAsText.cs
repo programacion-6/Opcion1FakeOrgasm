@@ -1,4 +1,6 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class ReporterControllerAsText : IExecutableHandler<string>
 {
@@ -60,27 +62,24 @@ public class ReporterControllerAsText : IExecutableHandler<string>
 
     public async Task ShowOverdueBooks()
     {
-        var books = await _reporter.GetOverdueBooks();
-        RenderSimpleBooksFormatted(books);
+        await PaginateBooks(async () => await _reporter.GetOverdueBooks());
     }
 
     public async Task ShowCurrentlyBorrowedBooks()
     {
-        var books = await _reporter.GetCurrentlyBorrowedBooks();
-        RenderSimpleBooksFormatted(books);
+        await PaginateBooks(async () => await _reporter.GetCurrentlyBorrowedBooks());
     }
 
     public async Task ShowCurrentLoansByPatron()
     {
         var allPatrons = (await _reporter.GetPatternsThatBorrowedBooks())
-                                .GroupBy(patron => patron.Id)
-                                .Select(group => group.First())
-                                .ToList();
+                            .GroupBy(patron => patron.Id)
+                            .Select(group => group.First())
+                            .ToList();
         var patron = await _patronSelector.TryToSelectAtLeastOne(allPatrons);
         if (patron is not null)
         {
-            var loans = await _reporter.GetLoansByPatron(patron);
-            await RenderLoansFormatted(loans);
+            await PaginateLoans(async () => await _reporter.GetLoansByPatron(patron));
         }
     }
 
@@ -93,7 +92,7 @@ public class ReporterControllerAsText : IExecutableHandler<string>
             var loans = await _reporter.GetLoansByPatron(patron);
             if (loans.Any())
             {
-                await RenderLoansFormatted(loans);
+                await PaginateLoans(async () => loans);
             }
             else
             {
@@ -104,17 +103,16 @@ public class ReporterControllerAsText : IExecutableHandler<string>
 
     public async Task ShowMostBorrowedBooks()
     {
-        var books = await _statisticsGenerator.GetMostBorrowedBooks();
-        RenderSimpleBooksFormatted(books);
+        await PaginateBooks(async () => await _statisticsGenerator.GetMostBorrowedBooks());
     }
 
     public async Task ShowMostActivePatrons()
     {
         var patrons = await _statisticsGenerator.GetMostActivePatrons();
-        var patronsFormated = await Task.WhenAll(patrons.Select(async patron =>
-                                    await _patronFormatterFactory
-                                    .CreateVerboseFormatter(patron)));
-        ResultRenderer.RenderResults(patronsFormated.ToList());
+        var patronsFormatted = await Task.WhenAll(patrons.Select(async patron =>
+                                await _patronFormatterFactory
+                                .CreateVerboseFormatter(patron)));
+        ResultRenderer.RenderResults(patronsFormatted.ToList());
     }
 
     public async Task ShowPatronsFines()
@@ -127,9 +125,9 @@ public class ReporterControllerAsText : IExecutableHandler<string>
                 var patron = tuple.Item1;
                 var patronFormatted = await _patronFormatterFactory.CreateVerboseFormatter(patron);
                 var fines = tuple.Item2;
-                var finesFormatted = await Task.WhenAll(fines.Select(async loan =>
+                var finesFormatted = await Task.WhenAll(fines.Select(async fine =>
                                     await _fineFormatterFactory
-                                    .CreateVerboseFormatter(loan)));
+                                    .CreateVerboseFormatter(fine)));
 
                 ResultRenderer.RenderResultWithListOf(patronFormatted, finesFormatted.ToList());
             }
@@ -140,20 +138,128 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         }
     }
 
-    private void RenderSimpleBooksFormatted(List<Book> books)
+    private async Task PaginateBooks(Func<Task<List<Book>>> getBooks)
     {
-        var booksFormated = books.Select
-            (_bookFormatterFactory
-                    .CreateSimpleFormatter)
-                    .ToList();
-        ResultRenderer.RenderResults(booksFormated);
+        var allBooks = await getBooks();
+        int pageSize = 3; // Tamaño de página
+        int currentPage = 0;
+        bool exit = false;
+
+        while (!exit)
+        {
+            // Guardar la posición actual del cursor
+            var top = Console.CursorTop;
+
+            // Obtener los libros para la página actual
+            var pageBooks = allBooks.Skip(currentPage * pageSize).Take(pageSize).ToList();
+
+            // Imprimir la página actual
+            AnsiConsole.Write(new Markup($"[bold underline]Page {currentPage + 1}[/]\n\n"));
+            await RenderVerboseBooksFormatted(pageBooks);
+
+            // Mostrar opciones de navegación
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .AddChoices(new[] { "Next", "Previous", "Exit" }));
+
+            switch (choice)
+            {
+                case "Next":
+                    if ((currentPage + 1) * pageSize < allBooks.Count)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage++;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Previous":
+                    if (currentPage > 0)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage--;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Exit":
+                    exit = true;
+                    break;
+            }
+        }
+    }
+
+    private async Task PaginateLoans(Func<Task<List<Loan>>> getLoans)
+    {
+        var allLoans = await getLoans();
+        int pageSize = 3; // Tamaño de página
+        int currentPage = 0;
+        bool exit = false;
+
+        while (!exit)
+        {
+            // Guardar la posición actual del cursor
+            var top = Console.CursorTop;
+
+            // Obtener los préstamos para la página actual
+            var pageLoans = allLoans.Skip(currentPage * pageSize).Take(pageSize).ToList();
+
+            // Imprimir la página actual
+            AnsiConsole.Write(new Markup($"[bold underline]Page {currentPage + 1}[/]\n\n"));
+            await RenderLoansFormatted(pageLoans);
+
+            // Mostrar opciones de navegación
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .AddChoices(new[] { "Next", "Previous", "Exit" }));
+
+            switch (choice)
+            {
+                case "Next":
+                    if ((currentPage + 1) * pageSize < allLoans.Count)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage++;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Previous":
+                    if (currentPage > 0)
+                    {
+                        AnsiConsole.Clear();
+                        currentPage--;
+                    }
+                    else
+                    {
+                        AnsiConsole.Clear();
+                    }
+                    break;
+                case "Exit":
+                    exit = true;
+                    break;
+            }
+        }
+    }
+
+    private async Task RenderVerboseBooksFormatted(List<Book> books)
+    {
+        var booksFormatted = await Task.WhenAll(books.Select(async book =>
+            await _bookFormatterFactory.CreateVerboseFormatter(book)));
+
+        ResultRenderer.RenderResults(booksFormatted.ToList());
     }
 
     private async Task RenderLoansFormatted(List<Loan> loans)
     {
         var loansFormatted = await Task.WhenAll(loans.Select(async loan =>
-                                    await _loanFormatterFactory
-                                    .CreateVerboseFormatter(loan)));
+            await _loanFormatterFactory.CreateVerboseFormatter(loan)));
         ResultRenderer.RenderResults(loansFormatted.ToList());
     }
 

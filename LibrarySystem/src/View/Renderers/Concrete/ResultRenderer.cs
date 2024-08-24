@@ -8,12 +8,16 @@ public static class ResultRenderer
     {
         if (result is not null)
         {
-            AnsiConsole.WriteLine($"{result}\n");
+            var panel = new Panel(new Markup($"[bold green]{result}[/]"))
+            {
+                Border = BoxBorder.Rounded,
+            };
+            AnsiConsole.Write(panel);
         }
         else
         {
-            var infoMessage = ConsoleFormatter.AsAnInfo("no found");
-            AnsiConsole.WriteLine(infoMessage);
+            var infoMessage = ConsoleFormatter.AsAnInfo("No result found");
+            AnsiConsole.MarkupLine(infoMessage);
         }
     }
 
@@ -24,13 +28,13 @@ public static class ResultRenderer
             int index = 0;
             foreach (var result in results)
             {
-                AnsiConsole.WriteLine($"{++index}. {result}");
+                AnsiConsole.MarkupLine($"[bold]{++index}[/]. {result}");
             }
         }
         else
         {
             var infoMessage = ConsoleFormatter.AsAnInfo("no results found");
-            AnsiConsole.WriteLine(infoMessage);
+            AnsiConsole.MarkupLine(infoMessage);
         }
     }
 
@@ -38,12 +42,16 @@ public static class ResultRenderer
     {
         if (result is not null)
         {
-            AnsiConsole.WriteLine($"{result} : {someElse}");
+            var panel = new Panel(new Markup($"[bold green]{result}[/] : [bold cyan]{someElse}[/]"))
+            {
+                Border = BoxBorder.Rounded
+            };
+            AnsiConsole.Write(panel);
         }
         else
         {
-            var infoMessage = ConsoleFormatter.AsAnInfo("no found");
-            AnsiConsole.WriteLine(infoMessage);
+            var infoMessage = ConsoleFormatter.AsAnInfo("No result found");
+            AnsiConsole.MarkupLine(infoMessage);
         }
     }
 
@@ -51,16 +59,37 @@ public static class ResultRenderer
     {
         if (result is not null)
         {
-            AnsiConsole.WriteLine($"{result}");
-            AnsiConsole.Write("\t");
-            RenderResults(someElse);
-            AnsiConsole.WriteLine();
+            var panel = new Panel(new Markup($"[bold green]{result}[/]"))
+            {
+                Border = BoxBorder.Rounded,
+            };
+            AnsiConsole.Write(panel);
+
+            if (someElse.Any())
+            {
+                var list = new List<string>();
+                foreach (var item in someElse)
+                {
+                    list.Add($"- {item}");
+                }
+
+                var listPanel = new Panel(new Markup(string.Join("\n", list)))
+                {
+                    Border = BoxBorder.Rounded,
+                    Header = new PanelHeader("[bold]Details[/]")
+                };
+                AnsiConsole.Write(listPanel);
+            }
+            else
+            {
+                var infoMessage = ConsoleFormatter.AsAnInfo("No additional items found");
+                AnsiConsole.MarkupLine(infoMessage);
+            }
         }
         else
         {
-            var infoMessage = ConsoleFormatter.AsAnInfo("no found");
-            AnsiConsole.WriteLine(infoMessage);
+            var infoMessage = ConsoleFormatter.AsAnInfo("No result found");
+            AnsiConsole.MarkupLine(infoMessage);
         }
     }
-
 }

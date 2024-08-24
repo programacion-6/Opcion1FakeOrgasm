@@ -2,6 +2,7 @@
 
 public class ConsoleFineRenderer : IResultRenderer<Fine>
 {
+
     public void RenderResult(Fine? result)
     {
         if (result is not null)

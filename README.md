@@ -32,6 +32,14 @@ Before to start running proyect, you need to have started docker service:
     ```
     sudo systemctl start docker
     ```
+**Warning:** `If you have already created the container of the FakeOrgasm project, you must previously delete it, so that when you enter the following command it is recreated and created with data generated in the database.`
+
+`Then enter the command:`
+```
+docker-compose up
+```
+If you do not have a container previously continue with these commands:
+
 Then at the root of the proyect you need to execute the following command:
 ```
 docker-compose up -d

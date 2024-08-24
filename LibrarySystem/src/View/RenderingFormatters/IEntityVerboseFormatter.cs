@@ -1,6 +1,10 @@
 namespace LibrarySystem;
 
-public interface IEntityVerboseFormatter<T> : IEntityFormatter<T> where T : EntityBase
+public abstract class IEntityVerboseFormatter<T> : IEntityFormatter<T> where T : EntityBase
 {
-    public Task LoadRelatedData();
+    protected IEntityVerboseFormatter(T entity) : base(entity)
+    {
+    }
+
+    public abstract Task LoadRelatedData();
 }

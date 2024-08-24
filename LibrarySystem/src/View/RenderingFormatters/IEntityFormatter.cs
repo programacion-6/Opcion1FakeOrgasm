@@ -1,6 +1,16 @@
 namespace LibrarySystem;
 
-public interface IEntityFormatter<T> where T : EntityBase
+public abstract class IEntityFormatter<T> where T : EntityBase
 {
-    public T Entity { get; }
+    protected T _entity;
+
+    protected IEntityFormatter(T entity)
+    {
+        _entity = entity;
+    }
+
+    public T Entity
+    {
+        get => _entity;
+    }
 }

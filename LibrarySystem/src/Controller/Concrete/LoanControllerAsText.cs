@@ -23,15 +23,15 @@ public class LoanControllerAsText : IExecutableHandler<string>
         _bookSelector = bookSelector;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "lend":
-                LendBook();
+                await LendBook();
                 break;
             case "return":
-                ReturnBook();
+                await ReturnBook();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -65,81 +65,135 @@ public class LoanControllerAsText : IExecutableHandler<string>
         return wasFound;
     }
 
-    private void ReturnBook()
+    private async Task ReturnBook()
     {
-        var activeLoans = _loanRepository.GetCurrentlyLoans();
-        var patrons = activeLoans.Select(loan => loan.Patron)
-                                    .GroupBy(patron => patron.Id)
-                                    .Select(group => group.First())
-                                    .ToList();
+        var patrons = await GetActivePatrons();
         var patron = _patronSelector.TryToSelectAtLeastOne(patrons);
 
         if (patron is not null)
         {
-            var patronLoans = _loanRepository.GetActiveLoansByPatron(patron);
-            var borrowedBooks = patronLoans.Select(loan => loan.Book).ToList();
-            var bookSelected = _bookSelector.TryToSelectAtLeastOne(borrowedBooks);
-            if (bookSelected is not null)
-            {
-                var loanSelected = patronLoans.FirstOrDefault(loan => loan.Book.Id == bookSelected.Id);
-#pragma warning disable CS8604
-                _lender.ReturnBook(loanSelected);
-#pragma warning restore CS8604
-                _messageRenderer.RenderSuccessMessage("returned book");
-
-            }
+            await HandleBookReturnForPatron(patron);
         }
     }
 
-    private void LendBook()
+    private async Task<List<Patron>> GetActivePatrons()
     {
-        var borrowedBooksIds = _loanRepository.GetCurrentlyLoans()
-                                            .Select(loan => loan.Book.Id)
-                                            .ToList();
-        var booksAvailable = _bookRepository.GetAll()
-                            .Where(book => !borrowedBooksIds.Contains(book.Id))
-                            .ToList();
+        var activeLoans = await _loanRepository.GetCurrentlyLoans();
+        var patronsIds = activeLoans.Select(loan => loan.PatronId).Distinct().ToList();
+
+        return await Task.WhenAll(patronsIds.Select(async patronId => await _patronRepository.GetById(patronId))).ContinueWith(task => task.Result.ToList());
+    }
+
+    private async Task HandleBookReturnForPatron(Patron patron)
+    {
+        var patronLoans = await GetLoansForPatron(patron.Id);
+        var borrowedBooks = await GetBooksFromLoans(patronLoans);
+
+        var bookSelected = _bookSelector.TryToSelectAtLeastOne(borrowedBooks);
+
+        if (bookSelected is not null)
+        {
+            await ReturnSelectedBook(patronLoans, bookSelected);
+        }
+    }
+
+    private async Task<List<Loan>> GetLoansForPatron(Guid patronId)
+    {
+        var loans = await _loanRepository.GetActiveLoansByPatron(patronId);
+        return loans.ToList();
+    }
+
+
+    private async Task<List<Book>> GetBooksFromLoans(List<Loan> loans)
+    {
+        return await Task.WhenAll(loans.Select(async loan => await _bookRepository.GetById(loan.BookId))).ContinueWith(task => task.Result.ToList());
+    }
+
+    private async Task ReturnSelectedBook(List<Loan> patronLoans, Book bookSelected)
+    {
+        var loanSelected = patronLoans.FirstOrDefault(loan => loan.BookId == bookSelected.Id);
+
+        if (loanSelected is not null)
+        {
+            await _lender.ReturnBook(loanSelected);
+            _messageRenderer.RenderSuccessMessage("Returned book");
+        }
+    }
+
+
+   private async Task LendBook()
+{
+    var booksAvailable = await GetAvailableBooks();
+    var patron = await SelectPatron();
+    
+    if (booksAvailable.Any() && patron != null)
+    {
         var book = _bookSelector.TryToSelectAtLeastOne(booksAvailable);
 
-        var allPatrons = _patronRepository.GetAll();
-        var patron = _patronSelector.TryToSelectAtLeastOne(allPatrons);
-        var isValidToLoan = TheBookWasFound(book) && ThePatronWasFound(patron);
-
-        if (isValidToLoan)
+        if (IsValidLoan(book, patron))
         {
-            try
-            {
-                _messageRenderer.RenderSimpleMessage("enter the days of loan:");
-
-                int loanTimeInDays;
-                string loanTimeInput;
-                bool isValidTime;
-                do
-                {
-                    loanTimeInput = _receiver.ReceiveInput();
-                    isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
-                    if (!isValidTime)
-                    {
-                        _messageRenderer.RenderErrorMessage("enter a number plase");
-                    }
-                } while (!isValidTime);
-
-#pragma warning disable CS8604
-                _lender.LendBook(book, patron, loanTimeInDays);
-#pragma warning restore CS8604
-                _messageRenderer.RenderSuccessMessage("successful loan");
-
-            }
-            catch (LoanException ex)
-            {
-                _messageRenderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
-            }
-            catch (Exception ex)
-            {
-                _messageRenderer.RenderErrorMessage(ex.Message);
-
-            }
+            await ProcessLoan(book, patron);
         }
     }
+}
+
+private async Task<List<Book>> GetAvailableBooks()
+{
+    var allLoans = await _loanRepository.GetCurrentlyLoans();
+    var borrowedBooksIds = allLoans.Select(loan => loan.BookId).ToList();
+
+    var allBooks = await _bookRepository.GetAll();
+    return allBooks.Where(book => !borrowedBooksIds.Contains(book.Id)).ToList();
+}
+
+private async Task<Patron> SelectPatron()
+{
+    var allPatrons = await _patronRepository.GetAll();
+    return _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
+}
+
+private bool IsValidLoan(Book book, Patron patron)
+{
+    return TheBookWasFound(book) && ThePatronWasFound(patron);
+}
+
+private async Task ProcessLoan(Book book, Patron patron)
+{
+    try
+    {
+        int loanTimeInDays = GetLoanTime();
+        await _lender.LendBook(book, patron, loanTimeInDays);
+        _messageRenderer.RenderSuccessMessage("Successful loan");
+    }
+    catch (LoanException ex)
+    {
+        _messageRenderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
+    }
+    catch (Exception ex)
+    {
+        _messageRenderer.RenderErrorMessage(ex.Message);
+    }
+}
+
+private int GetLoanTime()
+{
+    _messageRenderer.RenderSimpleMessage("Enter the days of loan:");
+    int loanTimeInDays;
+    string loanTimeInput;
+    bool isValidTime;
+
+    do
+    {
+        loanTimeInput = _receiver.ReceiveInput();
+        isValidTime = int.TryParse(loanTimeInput, out loanTimeInDays);
+        if (!isValidTime)
+        {
+            _messageRenderer.RenderErrorMessage("Enter a number please");
+        }
+    } while (!isValidTime);
+
+    return loanTimeInDays;
+}
+
 
 }

@@ -2,6 +2,7 @@
 
 public class ConsoleLoanRenderer : IResultRenderer<Loan>
 {
+
     public void RenderResult(Loan? result)
     {
         if (result is not null)

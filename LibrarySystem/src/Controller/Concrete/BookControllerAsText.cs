@@ -10,8 +10,9 @@ public class BookControllerAsText : IExecutableHandler<string>
     private IEntityEliminator<Book, string> _bookEliminator;
     private IMessageRenderer _messageRenderer;
     private IEntityFormatterFactory<Book> _bookFormatterFactory;
+    private EntityRendererAsConsolePages<Book> _bookRendererAsPages;
 
-    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, IEntityFormatterFactory<Book> bookFormatterFactory, IMessageRenderer messageRenderer)
+    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, IEntityFormatterFactory<Book> bookFormatterFactory, IMessageRenderer messageRenderer, EntityRendererAsConsolePages<Book> bookRendererAsPages)
     {
         _repository = repository;
         _bookCreator = bookCreator;
@@ -20,6 +21,7 @@ public class BookControllerAsText : IExecutableHandler<string>
 
         _bookFormatterFactory = bookFormatterFactory;
         _messageRenderer = messageRenderer;
+        _bookRendererAsPages = bookRendererAsPages;
     }
 
     public async Task Execute(string inputReceived)
@@ -36,7 +38,7 @@ public class BookControllerAsText : IExecutableHandler<string>
                 await _bookUpdater.TryToUpdateEntity();
                 break;
             case "show all":
-                await ShowAll();
+                await _bookRendererAsPages.RenderByPagination();
                 break;
             case "show by genre":
                 await FindBooksByGenre();

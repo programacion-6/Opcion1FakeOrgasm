@@ -83,4 +83,22 @@ public class PatronRepository : IPatronRepository
             return affected > 0;
         }
     }
+
+    public async Task<IEnumerable<Patron>> GetByPage(int pageNumber, int pageSize)
+    {
+        const string sql = @"
+        SELECT * 
+        FROM Patrons
+        ORDER BY Name
+        OFFSET @Offset ROWS
+        FETCH NEXT @PageSize ROWS ONLY";
+
+        int offset = (pageNumber - 1) * pageSize;
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QueryAsync<Patron>(sql, new { Offset = offset, PageSize = pageSize });
+        }
+    }
+
 }

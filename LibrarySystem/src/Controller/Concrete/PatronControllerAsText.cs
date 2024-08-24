@@ -10,8 +10,9 @@ public class PatronControllerAsText : IExecutableHandler<string>
     private IEntityEliminator<Patron, string> _patronEliminator;
     private IMessageRenderer _messageRenderer;
     private IEntityFormatterFactory<Patron> _patronFormatterFactory;
+    private EntityRendererAsConsolePages<Patron> _patronRendererAsPages;
 
-    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IMessageRenderer messageRenderer, IEntityFormatterFactory<Patron> patronFormatterFactory)
+    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IMessageRenderer messageRenderer, IEntityFormatterFactory<Patron> patronFormatterFactory, EntityRendererAsConsolePages<Patron> patronRendererAsPages)
     {
         _repository = repository;
         _patronCreator = patronCreator;
@@ -19,6 +20,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
         _patronEliminator = patronEliminator;
         _messageRenderer = messageRenderer;
         _patronFormatterFactory = patronFormatterFactory;
+        _patronRendererAsPages = patronRendererAsPages;
     }
 
     public async Task Execute(string inputReceived)
@@ -35,7 +37,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
                 await _patronUpdater.TryToUpdateEntity();
                 break;
             case "show all":
-                await ShowAll();
+                await _patronRendererAsPages.RenderByPagination();
                 break;
             case "find by name":
                 await FindPatronByName();

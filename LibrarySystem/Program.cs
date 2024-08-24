@@ -8,17 +8,16 @@ class Program
         using var connection = databaseConfig.CreateConnection();
 
         await connection.OpenAsync();
-
         await DatabaseConfig.CreateDatabaseSchema(connection);
 
         IReceiver<string> receiver = new ConsoleReceiver();
         IMessageRenderer messageRenderer = new ConsoleMessageRenderer();
         AbstractViewChanger<string> viewChanger = new ConsoleViewChanger();
 
-        IBookRepository bookRepository = new BookRepository(connection);
-        IPatronRepository patronRepository = new PatronRepository(connection);
-        ILoanRepository loanRepository = new LoanRepository(connection);
-        IFineRepository fineRepository = new FineRepository(connection);
+        IBookRepository bookRepository = new BookRepository(databaseConfig.ConnectionString);
+        IPatronRepository patronRepository = new PatronRepository(databaseConfig.ConnectionString);
+        ILoanRepository loanRepository = new LoanRepository(databaseConfig.ConnectionString);
+        IFineRepository fineRepository = new FineRepository(databaseConfig.ConnectionString);
 
         LenderValidator lenderValidator = new LenderValidator(fineRepository);
         Lender lender = new Lender(loanRepository, lenderValidator);
@@ -26,13 +25,13 @@ class Program
         Reporter reporter = new Reporter(loanRepository, bookRepository, patronRepository);
         StatisticsGenerator statisticsGenerator = new StatisticsGenerator(loanRepository, fineRepository, bookRepository, patronRepository);
 
-        IEntityRequester<Book> bookRequester = new BookRequesterByConsole(messageRenderer, receiver);
-        IEntityRequester<Patron> patronRequester = new PatronRequesterByConsole(receiver, messageRenderer);
+        IEntityRequester<Book> bookRequester = new BookRequesterByConsole(messageRenderer);
+        IEntityRequester<Patron> patronRequester = new PatronRequesterByConsole(messageRenderer);
 
         IEntityFormatterFactory<Book> bookFormatterFactory = new BookFormatterFactory();
         IEntityFormatterFactory<Patron> patronFormatterFactory = new PatronFormatterFactory();
-        IEntityFormatterFactory<Loan> loanFormatterFactory = new LoanFormatterFactory();
-        IEntityFormatterFactory<Fine> fineFormatterFactory = new FineFormatterFactory();
+        IEntityFormatterFactory<Loan> loanFormatterFactory = new LoanFormatterFactory(bookRepository, patronRepository);
+        IEntityFormatterFactory<Fine> fineFormatterFactory = new FineFormatterFactory(loanRepository);
 
         EntitySelectorByConsole<Book> bookSelectorByConsole = new EntitySelectorByConsole<Book>(messageRenderer, bookFormatterFactory);
         EntitySelectorByConsole<Patron> patronSelectorByConsole = new EntitySelectorByConsole<Patron>(messageRenderer, patronFormatterFactory);
@@ -48,7 +47,7 @@ class Program
 
         IExecutableHandler<string> bookController = new BookControllerAsText(bookRepository, bookCreator, bookUpdater, bookEliminator, bookFormatterFactory, receiver, messageRenderer);
         IExecutableHandler<string> patronController = new PatronControllerAsText(patronRepository, patronCreator, patronUpdater, patronEliminator, receiver, messageRenderer, patronFormatterFactory);
-        IExecutableHandler<string> lenderController = new LoanControllerAsText(lender, loanRepository, patronRepository, bookRepository, receiver, messageRenderer, patronSelectorByConsole, bookSelectorByConsole);
+        IExecutableHandler<string> lenderController = new LoanControllerAsText(lender, loanRepository, patronRepository, bookRepository, messageRenderer, patronSelectorByConsole, bookSelectorByConsole);
         IExecutableHandler<string> fineController = new FineControllerAsText(debtManager, fineRepository, messageRenderer, fineFormatterFactory, fineSelectorByConsole);
         IExecutableHandler<string> reportController = new ReporterControllerAsText(reporter, statisticsGenerator, patronRepository, bookFormatterFactory, patronFormatterFactory, loanFormatterFactory, messageRenderer, patronSelectorByConsole, fineFormatterFactory);
 

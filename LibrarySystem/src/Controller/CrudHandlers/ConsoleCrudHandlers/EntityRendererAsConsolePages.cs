@@ -23,48 +23,70 @@ public class EntityRendererAsConsolePages<T> where T : EntityBase
 
         while (!exit)
         {
-            var results = await _paginable.GetByPage(pageSize, currentPage * pageSize);
+            var results = await FetchPageResults(pageSize, currentPage);
 
-            if (!results.Any() || results.Count() == _results.Count())
+            if (IsEndOfResults(results))
             {
                 exit = true;
                 break;
             }
 
-            AnsiConsole.Clear();
-            foreach (var result in results)
+            AddNewResultsToCollection(results);
+            await RenderPage(results.ToList());
+            exit = HandleUserChoice(ref currentPage);
+        }
+    }
+
+    private async Task<IEnumerable<T>> FetchPageResults(int pageSize, int currentPage)
+    {
+        return await _paginable.GetByPage(pageSize, currentPage * pageSize);
+    }
+
+    private bool IsEndOfResults(IEnumerable<T> results)
+    {
+        return !results.Any() || results.Count() == _results.Count;
+    }
+
+    private void AddNewResultsToCollection(IEnumerable<T> results)
+    {
+        foreach (var result in results)
+        {
+            if (!_results.Any(r => r.Id == result.Id))
             {
-                if (!_results.Any(r => r.Id == result.Id))
-                {
-                    _results.Add(result);
-                }
+                _results.Add(result);
             }
+        }
+    }
 
-            await RenderVerboseBooksFormatted(results.ToList());
+    private async Task RenderPage(List<T> results)
+    {
+        AnsiConsole.Clear();
+        await RenderVerboseBooksFormatted(results);
+    }
 
-            var choice = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .AddChoices(["Next", "Stop"])
-            );
+    private bool HandleUserChoice(ref int currentPage)
+    {
+        var choice = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .AddChoices(new[] { "Next", "Stop" })
+        );
 
-            switch (choice)
-            {
-                case "Next":
-                    currentPage++;
-                    break;
-
-                case "Stop":
-                    exit = true;
-                    break;
-            }
+        switch (choice)
+        {
+            case "Next":
+                currentPage++;
+                return false;
+            case "Stop":
+                return true;
+            default:
+                return false;
         }
     }
 
     private async Task RenderVerboseBooksFormatted(List<T> books)
     {
         var booksFormated = await Task.WhenAll(books.Select(async book =>
-                                    await _formatterFactory
-                                    .CreateVerboseFormatter(book)));
+            await _formatterFactory.CreateVerboseFormatter(book)));
 
         ResultRenderer.RenderResults(booksFormated.ToList());
     }

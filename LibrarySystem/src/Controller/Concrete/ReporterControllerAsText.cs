@@ -154,7 +154,6 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         var loansFormatted = await Task.WhenAll(loans.Select(async loan =>
                                     await _loanFormatterFactory
                                     .CreateVerboseFormatter(loan)));
-
         ResultRenderer.RenderResults(loansFormatted.ToList());
     }
 

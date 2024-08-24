@@ -31,36 +31,41 @@ public class EntitySelectorByConsole<T> where T : EntityBase
 
     private async Task<T> SelectEntityByConsole(List<T> entities)
     {
-        var selectionPrompt = await CreatePrompt(entities);
-        var selected = AnsiConsole.Prompt(selectionPrompt);
+        var prompt = CreatePrompt(entities);
+        var selected = AnsiConsole.Prompt(prompt);
         _messageRenderer.RenderIndicatorMessage("Selected");
-        ResultRenderer.RenderResult(selected);
+        var entitySelectedFormated = await _formatterFactory.CreateVerboseFormatter(selected.Entity);
+        ResultRenderer.RenderResult(entitySelectedFormated);
 
         return selected.Entity;
     }
 
-    private async Task<SelectionPrompt<IEntityFormatter<T>>> CreatePrompt(List<T> entities)
+    private SelectionPrompt<IEntityFormatter<T>> CreatePrompt(List<T> entities)
     {
-        var selectionPrompt = new SelectionPrompt<IEntityFormatter<T>>()
-                    .Title("Choose one")
-                    .PageSize(5)
-                    .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
-                    .HighlightStyle(new Style(foreground: Color.LightGreen));
+        var entitiesFormatted = FormatEntities(entities);
 
-        await AddChoicesToSelector(selectionPrompt, entities);
+        var prompt = new SelectionPrompt<IEntityFormatter<T>>()
+                .Title("[cyan bold]Choose one:[/]")
+                .PageSize(3)
+                .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
+                .HighlightStyle(new Style(foreground: Color.Aqua))
+                .AddChoices(entitiesFormatted);
 
-        return selectionPrompt;
+        return prompt;
     }
 
-    private async Task AddChoicesToSelector(SelectionPrompt<IEntityFormatter<T>> selectionPrompt, List<T> entities)
+    private List<IEntityFormatter<T>> FormatEntities(List<T> entities)
     {
+        List<IEntityFormatter<T>> formattedEntities = new();
         foreach (var entity in entities)
         {
-            var formatter = await _formatterFactory.CreateVerboseFormatter(entity);
+            var formatter = _formatterFactory.CreateSimpleFormatter(entity);
             if (formatter is not null)
             {
-                selectionPrompt.AddChoice(formatter);
+                formattedEntities.Add(formatter);
             }
         }
+
+        return formattedEntities;
     }
 }

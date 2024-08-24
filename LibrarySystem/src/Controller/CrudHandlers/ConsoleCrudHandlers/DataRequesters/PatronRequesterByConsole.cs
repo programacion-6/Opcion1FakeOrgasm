@@ -1,15 +1,13 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class PatronRequesterByConsole : IEntityRequester<Patron>
 {
-
     private IMessageRenderer _renderer;
 
-    private IReceiver<string> _receiver;
-
-    public PatronRequesterByConsole(IReceiver<string> receiver, IMessageRenderer renderer)
+    public PatronRequesterByConsole(IMessageRenderer renderer)
     {
-        _receiver = receiver;
         _renderer = renderer;
     }
 
@@ -36,11 +34,9 @@ public class PatronRequesterByConsole : IEntityRequester<Patron>
 
     private Patron ReceivePatronByConsole()
     {
-        _renderer.RenderSimpleMessage("Enter the name: ");
-        var name = _receiver.ReceiveInput();
-        _renderer.RenderSimpleMessage("Enter the contact details: ");
-        var contactDetails = _receiver.ReceiveInput();
-        var membershipNumber = GetMembershipNumberAsNumber();
+        var name = AnsiConsole.Ask<string>("Enter the [bold]name[/]:");
+        var contactDetails = AnsiConsole.Ask<string>("Enter the [bold]contact details[/]:");
+        var membershipNumber = AnsiConsole.Ask<int>("Enter the [bold]membership number[/]:");
 
         var patronReceived = new Patron
         {
@@ -49,22 +45,7 @@ public class PatronRequesterByConsole : IEntityRequester<Patron>
             MembershipNumber = membershipNumber,
             ContactDetails = contactDetails
         };
+
         return patronReceived;
-    }
-
-    private int GetMembershipNumberAsNumber()
-    {
-        int membershipNumber = -1;
-        do
-        {
-            _renderer.RenderSimpleMessage("Enter the membership number: ");
-            var numberAsText = _receiver.ReceiveInput();
-            if (int.TryParse(numberAsText, out int number))
-            {
-                membershipNumber = number;
-            }
-        } while (membershipNumber == -1);
-
-        return membershipNumber;
     }
 }

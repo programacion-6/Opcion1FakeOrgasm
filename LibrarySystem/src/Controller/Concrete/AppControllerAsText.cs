@@ -1,4 +1,6 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class AppControllerAsText : IAppController
 {
@@ -71,6 +73,9 @@ public class AppControllerAsText : IAppController
 
     private void ShowWelcome()
     {
-        _messageRenderer.RenderIndicatorMessage("Welcome");
+        AnsiConsole.Write(
+            new FigletText("Welcome")
+                .Centered()
+                .Color(Color.Plum3));
     }
 }

@@ -26,7 +26,10 @@ public class StatisticsGenerator
         foreach (var bookId in bookIds)
         {
             var book = await _bookRepository.GetById(bookId);
-            books.Add(book);
+            if (book is not null)
+            {
+                books.Add(book);
+            }
         }
 
         var mostBorrowedBooks = loans
@@ -49,7 +52,10 @@ public class StatisticsGenerator
         foreach (var patronId in patronsIds)
         {
             var patron = await _patronRepository.GetById(patronId);
-            patrons.Add(patron);
+            if (patron is not null)
+            {
+                patrons.Add(patron);
+            }
         }
 
         var mostActivePatrons = loans.GroupBy(loan => patrons.First(patron => patron.Id == loan.PatronId))
@@ -70,7 +76,10 @@ public class StatisticsGenerator
         foreach (var loanId in loanIds)
         {
             var loan = await loanRepository.GetById(loanId);
-            loans.Add(loan);
+            if (loan is not null)
+            {
+                loans.Add(loan);
+            }
         }
 
         var patrons = new List<Patron>();
@@ -78,7 +87,7 @@ public class StatisticsGenerator
         foreach (var loan in loans)
         {
             var patron = await _patronRepository.GetById(loan.PatronId);
-            if (!patrons.Any(p => p.Id == patron.Id))
+            if (patron is not null && !patrons.Any(p => p.Id == patron.Id))
             {
                 patrons.Add(patron);
             }
@@ -88,7 +97,7 @@ public class StatisticsGenerator
             .GroupBy(fine => patrons.First(patron => patron.Id == loans.First(loan => loan.Id == fine.LoanId).PatronId))
             .Select(group => new Tuple<Patron, List<Fine>>(group.Key, group.ToList()))
             .ToList();
-            
+
         return patronsFines;
     }
 }

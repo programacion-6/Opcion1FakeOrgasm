@@ -5,15 +5,15 @@ public class FineControllerAsText : IExecutableHandler<string>
     private DebtManager _debtManager;
     private IFineRepository _fineRepository;
     private IMessageRenderer _messageRenderer;
-    private IResultRenderer<Fine> _fineRenderer;
+    private IEntityFormatterFactory<Fine> _fineFormatterFactory;
     private EntitySelectorByConsole<Fine> _fineSelector;
 
-    public FineControllerAsText(DebtManager debtManager, IFineRepository fineRepository, IMessageRenderer messageRenderer, IResultRenderer<Fine> fineRenderer, EntitySelectorByConsole<Fine> fineSelector)
+    public FineControllerAsText(DebtManager debtManager, IFineRepository fineRepository, IMessageRenderer messageRenderer, IEntityFormatterFactory<Fine> fineFormatterFactory, EntitySelectorByConsole<Fine> fineSelector)
     {
         _debtManager = debtManager;
         _fineRepository = fineRepository;
         _messageRenderer = messageRenderer;
-        _fineRenderer = fineRenderer;
+        _fineFormatterFactory = fineFormatterFactory;
         _fineSelector = fineSelector;
     }
 
@@ -42,23 +42,32 @@ public class FineControllerAsText : IExecutableHandler<string>
     private async Task ShowFines()
     {
         var fines = await _fineRepository.GetAll();
-        _fineRenderer.RenderResults(fines.ToList());
+        await RenderVerboseFinesFormatted(fines.ToList());
     }
 
     private async Task ShowActiveFines()
     {
         var fines = await _fineRepository.GetActiveFines();
-        _fineRenderer.RenderResults(fines.ToList());
+        await RenderVerboseFinesFormatted(fines.ToList());
     }
 
     private async Task MarkAsPaid()
     {
         var activeFines = await _fineRepository.GetActiveFines();
-        Fine? fine = _fineSelector.TryToSelectAtLeastOne(activeFines.ToList());
+        Fine? fine = await _fineSelector.TryToSelectAtLeastOne(activeFines.ToList());
         if (fine is not null)
         {
             await _debtManager.MarkAsPaid(fine);
             _messageRenderer.RenderSuccessMessage("debt paid");
         }
+    }
+
+    private async Task RenderVerboseFinesFormatted(List<Fine> fines)
+    {
+        var finesFormatted = await Task.WhenAll(fines.Select(async fine =>
+                                    await _fineFormatterFactory
+                                    .CreateVerboseFormatter(fine)));
+
+        ResultRenderer.RenderResults(finesFormatted.ToList());
     }
 }

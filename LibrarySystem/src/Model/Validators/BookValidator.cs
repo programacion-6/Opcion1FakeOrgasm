@@ -45,7 +45,7 @@ public class BookValidator
                 "Please provide a valid author's name, ensuring that it is not empty or composed solely of whitespace.");
         }
 
-        if (!author.All(char.IsLetter))
+        if (!author.All(c => char.IsLetter(c) || char.IsWhiteSpace(c)))
         {
             throw new BookException(
                 "Author name must contain only letters.",

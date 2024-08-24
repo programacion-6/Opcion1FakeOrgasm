@@ -23,11 +23,4 @@ public class Fine : EntityBase
         set => _wasPayed = value;
     }
 
-    public override string ToString()
-    {
-        return "Fine: " + FineAmount + "$ | " 
-            + (WasPayed ? "paid" : "active") 
-            + "\n\t" + LoanId;
-    }
-
 }

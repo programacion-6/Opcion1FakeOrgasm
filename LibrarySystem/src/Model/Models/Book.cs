@@ -42,13 +42,4 @@ public class Book : EntityBase
         get => _publicationYear;
         set => _publicationYear = value;
     }
-
-    public override string ToString()
-    {
-        return Title +
-                    "\n\tauthor: " + Author +
-                    "\n\tISBN: " + ISBN +
-                    "\n\tgenre: " + Genre +
-                    "\n\tyear: " + PublicationYear;
-    }
 }

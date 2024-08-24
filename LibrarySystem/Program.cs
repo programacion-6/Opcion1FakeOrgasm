@@ -32,7 +32,7 @@ class Program
         IEntityFormatterFactory<Book> bookFormatterFactory = new BookFormatterFactory();
         IEntityFormatterFactory<Patron> patronFormatterFactory = new PatronFormatterFactory();
         IEntityFormatterFactory<Loan> loanFormatterFactory = new LoanFormatterFactory(bookRepository, patronRepository);
-        IEntityFormatterFactory<Fine> fineFormatterFactory = new FineFormatterFactory(loanRepository);
+        IEntityFormatterFactory<Fine> fineFormatterFactory = new FineFormatterFactory(loanRepository, bookRepository, patronRepository);
 
         EntitySelectorByConsole<Book> bookSelectorByConsole = new EntitySelectorByConsole<Book>(messageRenderer, bookFormatterFactory);
         EntitySelectorByConsole<Patron> patronSelectorByConsole = new EntitySelectorByConsole<Patron>(messageRenderer, patronFormatterFactory);

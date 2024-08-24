@@ -57,7 +57,7 @@ public class BookRepository : IBookRepository
 
         using (var connection = new NpgsqlConnection(_connectionString))
         {
-            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { Id = id });
+            return await connection.QueryFirstOrDefaultAsync<Book>(sql, new { Id = id });
         }
     }
 
@@ -77,7 +77,7 @@ public class BookRepository : IBookRepository
 
         using (var connection = new NpgsqlConnection(_connectionString))
         {
-            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { Title = title });
+            return await connection.QueryFirstOrDefaultAsync<Book>(sql, new { Title = title });
         }
     }
 
@@ -87,7 +87,7 @@ public class BookRepository : IBookRepository
 
         using (var connection = new NpgsqlConnection(_connectionString))
         {
-            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { Author = author });
+            return await connection.QueryFirstOrDefaultAsync<Book>(sql, new { Author = author });
         }
     }
 
@@ -97,7 +97,7 @@ public class BookRepository : IBookRepository
 
         using (var connection = new NpgsqlConnection(_connectionString))
         {
-            return await connection.QuerySingleOrDefaultAsync<Book>(sql, new { ISBN });
+            return await connection.QueryFirstOrDefaultAsync<Book>(sql, new { ISBN });
         }
     }
 

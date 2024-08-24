@@ -1,16 +1,17 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class BookControllerAsText : IExecutableHandler<string>
 {
     private IBookRepository _repository;
-    private IReceiver<string> _receiver;
     private IEntityCreator<Book, string> _bookCreator;
     private IEntityUpdater<Book, string> _bookUpdater;
     private IEntityEliminator<Book, string> _bookEliminator;
     private IMessageRenderer _messageRenderer;
     private IEntityFormatterFactory<Book> _bookFormatterFactory;
 
-    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, IEntityFormatterFactory<Book> bookFormatterFactory, IReceiver<string> receiver, IMessageRenderer messageRenderer)
+    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, IEntityFormatterFactory<Book> bookFormatterFactory, IMessageRenderer messageRenderer)
     {
         _repository = repository;
         _bookCreator = bookCreator;
@@ -18,7 +19,6 @@ public class BookControllerAsText : IExecutableHandler<string>
         _bookEliminator = bookEliminator;
 
         _bookFormatterFactory = bookFormatterFactory;
-        _receiver = receiver;
         _messageRenderer = messageRenderer;
     }
 
@@ -64,16 +64,14 @@ public class BookControllerAsText : IExecutableHandler<string>
 
     private async Task FindBooksByGenre()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the genre:");
-        var genre = _receiver.ReceiveInput();
+        var genre = AnsiConsole.Ask<string>("Enter the [bold]genre[/]:");
         var booksFound = await _repository.GetBooksByGenre(genre);
         await RenderVerboseBooksFormatted(booksFound.ToList());
     }
 
     private async Task FindBookByTitle()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the title:");
-        var title = _receiver.ReceiveInput();
+        var title = AnsiConsole.Ask<string>("Enter the [bold]title[/]:");
         var bookFound = await _repository.GetByTitle(title);
         var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
         ResultRenderer.RenderResult(bookFormated);
@@ -81,8 +79,7 @@ public class BookControllerAsText : IExecutableHandler<string>
 
     private async Task FindBookByAuthor()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the author:");
-        var author = _receiver.ReceiveInput();
+        var author = AnsiConsole.Ask<string>("Enter the [bold]author[/]:");
         var bookFound = await _repository.GetByAuthor(author);
         var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
         ResultRenderer.RenderResult(bookFormated);
@@ -90,8 +87,7 @@ public class BookControllerAsText : IExecutableHandler<string>
 
     private async Task FindBookByISBN()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the ISBN:");
-        var ISBN = _receiver.ReceiveInput();
+        var ISBN = AnsiConsole.Ask<string>("Enter the [bold]ISBN[/]:");
         var bookFound = await _repository.GetByISBN(ISBN);
         var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
         ResultRenderer.RenderResult(bookFormated);

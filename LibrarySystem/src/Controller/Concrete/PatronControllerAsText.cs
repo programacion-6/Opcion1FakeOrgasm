@@ -1,8 +1,9 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class PatronControllerAsText : IExecutableHandler<string>
 {
-    private IReceiver<string> _receiver;
     private IPatronRepository _repository;
     private IEntityCreator<Patron, string> _patronCreator;
     private IEntityUpdater<Patron, string> _patronUpdater;
@@ -10,15 +11,14 @@ public class PatronControllerAsText : IExecutableHandler<string>
     private IMessageRenderer _messageRenderer;
     private IEntityFormatterFactory<Patron> _patronFormatterFactory;
 
-    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, IMessageRenderer messageRenderer, IEntityFormatterFactory<Patron> patronFormatterFactoryr)
+    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IMessageRenderer messageRenderer, IEntityFormatterFactory<Patron> patronFormatterFactory)
     {
         _repository = repository;
         _patronCreator = patronCreator;
         _patronUpdater = patronUpdater;
         _patronEliminator = patronEliminator;
-        _receiver = receiver;
         _messageRenderer = messageRenderer;
-        _patronFormatterFactory = patronFormatterFactoryr;
+        _patronFormatterFactory = patronFormatterFactory;
     }
 
     public async Task Execute(string inputReceived)
@@ -57,8 +57,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
 
     private async Task FindPatronByName()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the name:");
-        var name = _receiver.ReceiveInput();
+        var name = AnsiConsole.Ask<string>("Enter the [bold]name[/]:");
         var patronFound = await _repository.GetByName(name);
         var bookFormated = await _patronFormatterFactory.CreateVerboseFormatter(patronFound);
         ResultRenderer.RenderResult(bookFormated);
@@ -66,12 +65,7 @@ public class PatronControllerAsText : IExecutableHandler<string>
 
     private async Task FindPatronByMembershipNumber()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the membership number:");
-        var input = _receiver.ReceiveInput();
-        if (!int.TryParse(input, out int membershipNumber))
-        {
-            _messageRenderer.RenderErrorMessage("invalid input");
-        }
+        int membershipNumber = AnsiConsole.Ask<int>("Enter the [bold]membership number[/]:");
         var patronFound = await _repository.GetByMembershipNumber(membershipNumber);
         var bookFormated = await _patronFormatterFactory.CreateVerboseFormatter(patronFound);
         ResultRenderer.RenderResult(bookFormated);

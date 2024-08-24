@@ -1,8 +1,26 @@
 ﻿namespace LibrarySystem;
-
 public class Fine : EntityBase
 {
-    public required Guid LoanId { get; set; }
-    public required double FineAmount { get; set; }
-    public bool WasPayed { get; set; } = false;
+    private Guid _loanId;
+    private double _fineAmount;
+    private bool _wasPayed = false;
+
+    public required Guid LoanId
+    {
+        get => _loanId;
+        set => _loanId = value;
+    }
+
+    public required double FineAmount
+    {
+        get => _fineAmount;
+        set => _fineAmount = value;
+    }
+
+    public required bool WasPayed
+    {
+        get => _wasPayed;
+        set => _wasPayed = value;
+    }
+
 }

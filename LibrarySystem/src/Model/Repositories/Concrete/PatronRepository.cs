@@ -44,7 +44,7 @@ public class PatronRepository : IPatronRepository
         const string sql = "SELECT * FROM Patrons WHERE MembershipNumber = @MembershipNumber";
         using (var connection = new NpgsqlConnection(_connectionString))
         {
-            return await connection.QuerySingleOrDefaultAsync<Patron>(sql, new { MembershipNumber = membershipNumber });
+            return await connection.QueryFirstOrDefaultAsync<Patron>(sql, new { MembershipNumber = membershipNumber });
         }
     }
 
@@ -53,7 +53,7 @@ public class PatronRepository : IPatronRepository
         const string sql = "SELECT * FROM Patrons WHERE LOWER(Name) = LOWER(@Name)";
         using (var connection = new NpgsqlConnection(_connectionString))
         {
-            return await connection.QuerySingleOrDefaultAsync<Patron>(sql, new { Name = name });
+            return await connection.QueryFirstOrDefaultAsync<Patron>(sql, new { Name = name });
         }
     }
 

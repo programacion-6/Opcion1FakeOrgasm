@@ -1,14 +1,16 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class BookRequesterByConsole : IEntityRequester<Book>
 {
     private IMessageRenderer _renderer;
-    private IReceiver<string> _receiver;
+    private BookValidator _bookValidator;
 
-    public BookRequesterByConsole(IMessageRenderer renderer, IReceiver<string> receiver)
+    public BookRequesterByConsole(IMessageRenderer renderer)
     {
         _renderer = renderer;
-        _receiver = receiver;
+        _bookValidator = new BookValidator();
     }
 
     public Book? AskForEntity()
@@ -17,12 +19,12 @@ public class BookRequesterByConsole : IEntityRequester<Book>
         try
         {
             var bookToValidate = ReceiveBookByConsole();
-            BookValidator.ValidateBook(bookToValidate);
+            _bookValidator.ValidateBook(bookToValidate);
             requestedBook = bookToValidate;
         }
         catch (BookException ex)
         {
-            _renderer.RenderErrorMessage(ex.Message);
+            _renderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)
         {
@@ -34,15 +36,11 @@ public class BookRequesterByConsole : IEntityRequester<Book>
 
     private Book ReceiveBookByConsole()
     {
-        _renderer.RenderSimpleMessage("Enter the title: ");
-        var title = _receiver.ReceiveInput();
-        _renderer.RenderSimpleMessage("Enter the author: ");
-        var author = _receiver.ReceiveInput();
-        _renderer.RenderSimpleMessage("Enter the ISBN: ");
-        var isbn = _receiver.ReceiveInput();
-        _renderer.RenderSimpleMessage("Enter the genre: ");
-        var genre = _receiver.ReceiveInput();
-        var year = ReceiveYearAsNumber();
+        var title = AnsiConsole.Ask<string>("Enter the [bold]title[/]:");
+        var author = AnsiConsole.Ask<string>("Enter the [bold]author[/]:");
+        var isbn = AnsiConsole.Ask<string>("Enter the [bold]ISBN[/]:");
+        var genre = AnsiConsole.Ask<string>("Enter the [bold]genre[/]:");
+        var year = AnsiConsole.Ask<int>("Enter the [bold]publication year[/]:");
 
         var bookReceived = new Book
         {
@@ -57,24 +55,4 @@ public class BookRequesterByConsole : IEntityRequester<Book>
         return bookReceived;
     }
 
-    private int ReceiveYearAsNumber()
-    {
-        int yearAsNumber = -1;
-        _renderer.RenderSimpleMessage("Enter the publication year: ");
-        do
-        {
-            var yearAsText = _receiver.ReceiveInput();
-            if (int.TryParse(yearAsText, out int number))
-            {
-                yearAsNumber = number;
-            }
-            else
-            {
-                _renderer.RenderErrorMessage("enter a number");
-
-            }
-        } while (yearAsNumber == -1);
-
-        return yearAsNumber;
-    }
 }

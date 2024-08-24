@@ -11,25 +11,25 @@ public class Lender
         this.lenderValidator = lenderValidator;
     }
 
-    public void ReturnBook(Loan loan)
+    public async Task ReturnBook(Loan loan)
     {
         loan.WasReturn = true;
-        loanRepository.Update(loan);
+        await loanRepository.Update(loan);
     }
 
-    public void LendBook(Book book, Patron patron, int loanTimeInDays)
+    public async Task LendBook(Book book, Patron patron, int loanTimeInDays)
     {
         lenderValidator.ValidateLoanTime(loanTimeInDays);
-        if (!lenderValidator.HasFine(patron))
+        if (!await lenderValidator.HasFine(patron))
         {
             var loan = new Loan()
             {
                 Id = Guid.NewGuid(),
-                Book = book,
-                Patron = patron,
+                BookId = book.Id,
+                PatronId = patron.Id,
                 ReturnDate = DateTime.Now.AddDays(loanTimeInDays)
             };
-            loanRepository.Save(loan);
+            await loanRepository.Save(loan);
         }
         else
         {

@@ -13,13 +13,13 @@ public class EntityEliminatorByConsole<T> : IEntityEliminator<T, string> where T
         _entitySelector = entitySelector;
     }
 
-    public void TryToDeleteEntity()
+    public async Task TryToDeleteEntity()
     {
-        var entities = _repository.GetAll();
-        var entity = _entitySelector.TryToSelectAtLeastOne(entities);
+        var entities = await _repository.GetAll();
+        var entity = await _entitySelector.TryToSelectAtLeastOne(entities.ToList());
         if (entity is not null)
         {
-            var wasDeleted = _repository.Delete(entity);
+            var wasDeleted = await _repository.Delete(entity.Id);
             RenderDeleteStatus(wasDeleted);
         }
 

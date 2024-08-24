@@ -1,4 +1,6 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class AppControllerAsText : IAppController
 {
@@ -16,7 +18,7 @@ public class AppControllerAsText : IAppController
         _messageRenderer = messageRenderer;
     }
 
-    private void Execute(string inputReceived)
+    private async Task Execute(string inputReceived)
     {
         if (_viewChanger.IsTheViewChanging(inputReceived))
         {
@@ -24,7 +26,10 @@ public class AppControllerAsText : IAppController
         }
         else
         {
-            currentHandler?.Execute(inputReceived);
+            if (currentHandler != null)
+            {
+                await currentHandler.Execute(inputReceived);
+            }
         }
     }
 
@@ -55,19 +60,22 @@ public class AppControllerAsText : IAppController
         }
     }
 
-    public void ExecuteInfinitely()
+    public async Task ExecuteInfinitelyAsync()
     {
         ShowWelcome();
         SelectInitView();
         while (true)
         {
             var input = _receiver.ReceiveInput();
-            Execute(input);
+            await Execute(input);
         }
     }
 
     private void ShowWelcome()
     {
-        _messageRenderer.RenderIndicatorMessage("Welcome");
+        AnsiConsole.Write(
+            new FigletText("Welcome")
+                .Centered()
+                .Color(Color.Plum3));
     }
 }

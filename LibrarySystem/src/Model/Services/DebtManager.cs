@@ -11,32 +11,32 @@ public class DebtManager
         this.fineRepository = fineRepository;
     }
 
-    public void MarkAsPaid(Fine fine)
+    public async Task MarkAsPaid(Fine fine)
     {
         fine.WasPayed = true;
-        fineRepository.Update(fine);
+        await fineRepository.Update(fine);
     }
 
-    private Fine CreateFine(Loan loan)
+    private async Task<Fine> CreateFine(Loan loan)
     {
         var fineAmount = FineCalculator.GetFineAmountByDate(loan.LoanDate, loan.ReturnDate);
         var fine = new Fine
         {
             Id = Guid.NewGuid(),
-            Loan = loan,
+            LoanId = loan.Id,
             FineAmount = fineAmount,
             WasPayed = false
         };
-        fineRepository.Save(fine);
+        await fineRepository.Save(fine);
         return fine;
     }
 
-    public void CreateDebtsAutomatically()
+    public async void CreateDebtsAutomatically()
     {
-        var overdueLoans = loanRepository.GetOverdueLoans();
+        var overdueLoans = await loanRepository.GetOverdueLoans();
         foreach (var loan in overdueLoans)
         {
-            CreateFine(loan);
+            await CreateFine(loan);
         }
     }
 }

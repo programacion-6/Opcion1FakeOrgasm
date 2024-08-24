@@ -1,47 +1,49 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class PatronControllerAsText : IExecutableHandler<string>
 {
-    private IReceiver<string> _receiver;
     private IPatronRepository _repository;
     private IEntityCreator<Patron, string> _patronCreator;
     private IEntityUpdater<Patron, string> _patronUpdater;
     private IEntityEliminator<Patron, string> _patronEliminator;
     private IMessageRenderer _messageRenderer;
-    private IResultRenderer<Patron> _patronRenderer;
+    private IEntityFormatterFactory<Patron> _patronFormatterFactory;
+    private EntityRendererAsConsolePages<Patron> _patronRendererAsPages;
 
-    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IReceiver<string> receiver, IMessageRenderer messageRenderer, IResultRenderer<Patron> patronRenderer)
+    public PatronControllerAsText(IPatronRepository repository, IEntityCreator<Patron, string> patronCreator, IEntityUpdater<Patron, string> patronUpdater, IEntityEliminator<Patron, string> patronEliminator, IMessageRenderer messageRenderer, IEntityFormatterFactory<Patron> patronFormatterFactory, EntityRendererAsConsolePages<Patron> patronRendererAsPages)
     {
         _repository = repository;
         _patronCreator = patronCreator;
         _patronUpdater = patronUpdater;
         _patronEliminator = patronEliminator;
-        _receiver = receiver;
         _messageRenderer = messageRenderer;
-        _patronRenderer = patronRenderer;
+        _patronFormatterFactory = patronFormatterFactory;
+        _patronRendererAsPages = patronRendererAsPages;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "new":
-                _patronCreator.TryToCreateEntity();
+                await _patronCreator.TryToCreateEntity();
                 break;
             case "delete":
-                _patronEliminator.TryToDeleteEntity();
+                await _patronEliminator.TryToDeleteEntity();
                 break;
             case "update":
-                _patronUpdater.TryToUpdateEntity();
+                await _patronUpdater.TryToUpdateEntity();
                 break;
             case "show all":
-                _patronRenderer.RenderResults(_repository.GetAll());
+                await _patronRendererAsPages.RenderByPagination();
                 break;
             case "find by name":
-                FindPatronByName();
+                await FindPatronByName();
                 break;
             case "find by m-number":
-                FindPatronByMembershipNumber();
+                await FindPatronByMembershipNumber();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -49,25 +51,28 @@ public class PatronControllerAsText : IExecutableHandler<string>
         }
     }
 
-    private void FindPatronByName()
+    private async Task FindPatronByName()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the name:");
-        var name = _receiver.ReceiveInput();
-        var patronFound = _repository.GetByName(name);
-        _patronRenderer.RenderResult(patronFound);
+        var name = AnsiConsole.Ask<string>("Enter the [bold]name[/]:");
+        var patronFound = await _repository.GetByName(name);
+        var bookFormated = await _patronFormatterFactory.CreateVerboseFormatter(patronFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
-    private void FindPatronByMembershipNumber()
+    private async Task FindPatronByMembershipNumber()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the membership number:");
-        var input = _receiver.ReceiveInput();
-        if (!int.TryParse(input, out int membershipNumber))
-        {
-            _messageRenderer.RenderErrorMessage("invalid input");
-        }
-        var patronFound = _repository.GetByMembershipNumber(membershipNumber);
-        _patronRenderer.RenderResult(patronFound);
+        int membershipNumber = AnsiConsole.Ask<int>("Enter the [bold]membership number[/]:");
+        var patronFound = await _repository.GetByMembershipNumber(membershipNumber);
+        var bookFormated = await _patronFormatterFactory.CreateVerboseFormatter(patronFound);
+        ResultRenderer.RenderResult(bookFormated);
+    }
 
+    private async Task RenderVerbosePatronsFormatted(List<Patron> patrons)
+    {
+        var patronsFormated = await Task.WhenAll(patrons.Select(async patron =>
+                                    await _patronFormatterFactory
+                                    .CreateVerboseFormatter(patron)));
+        ResultRenderer.RenderResults(patronsFormated.ToList());
     }
 
 }

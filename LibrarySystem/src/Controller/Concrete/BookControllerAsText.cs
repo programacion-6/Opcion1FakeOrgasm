@@ -1,54 +1,56 @@
-﻿namespace LibrarySystem;
+﻿using Spectre.Console;
+
+namespace LibrarySystem;
 
 public class BookControllerAsText : IExecutableHandler<string>
 {
     private IBookRepository _repository;
-    private IReceiver<string> _receiver;
     private IEntityCreator<Book, string> _bookCreator;
     private IEntityUpdater<Book, string> _bookUpdater;
     private IEntityEliminator<Book, string> _bookEliminator;
     private IMessageRenderer _messageRenderer;
-    private IResultRenderer<Book> _rendererBooks;
+    private IEntityFormatterFactory<Book> _bookFormatterFactory;
+    private EntityRendererAsConsolePages<Book> _bookRendererAsPages;
 
-    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, IResultRenderer<Book> rendererBooks, IReceiver<string> receiver, IMessageRenderer messageRenderer)
+    public BookControllerAsText(IBookRepository repository, IEntityCreator<Book, string> bookCreator, IEntityUpdater<Book, string> bookUpdater, IEntityEliminator<Book, string> bookEliminator, IEntityFormatterFactory<Book> bookFormatterFactory, IMessageRenderer messageRenderer, EntityRendererAsConsolePages<Book> bookRendererAsPages)
     {
         _repository = repository;
         _bookCreator = bookCreator;
         _bookUpdater = bookUpdater;
         _bookEliminator = bookEliminator;
 
-        _rendererBooks = rendererBooks;
-        _receiver = receiver;
+        _bookFormatterFactory = bookFormatterFactory;
         _messageRenderer = messageRenderer;
+        _bookRendererAsPages = bookRendererAsPages;
     }
 
-    public void Execute(string inputReceived)
+    public async Task Execute(string inputReceived)
     {
         switch (inputReceived)
         {
             case "new":
-                _bookCreator.TryToCreateEntity();
+                await _bookCreator.TryToCreateEntity();
                 break;
             case "delete":
-                _bookEliminator.TryToDeleteEntity();
+                await _bookEliminator.TryToDeleteEntity();
                 break;
             case "update":
-                _bookUpdater.TryToUpdateEntity();
+                await _bookUpdater.TryToUpdateEntity();
                 break;
             case "show all":
-                _rendererBooks.RenderResults(_repository.GetAll());
+                await _bookRendererAsPages.RenderByPagination();
                 break;
             case "show by genre":
-                FindBooksByGenre();
+                await FindBooksByGenre();
                 break;
             case "find by title":
-                FindBookByTitle();
+                await FindBookByTitle();
                 break;
             case "find by author":
-                FindBookByAuthor();
+                await FindBookByAuthor();
                 break;
             case "find by ISBN":
-                FindBookByISBN();
+                await FindBookByISBN();
                 break;
             default:
                 _messageRenderer.RenderErrorMessage("option not found");
@@ -56,36 +58,44 @@ public class BookControllerAsText : IExecutableHandler<string>
         }
     }
 
-    private void FindBooksByGenre()
+    private async Task FindBooksByGenre()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the genre:");
-        var genre = _receiver.ReceiveInput();
-        var booksFound = _repository.GetBooksByGenre(genre);
-        _rendererBooks.RenderResults(booksFound);
+        var genre = AnsiConsole.Ask<string>("Enter the [bold]genre[/]:");
+        var booksFound = await _repository.GetBooksByGenre(genre);
+        await RenderVerboseBooksFormatted(booksFound.ToList());
     }
 
-    private void FindBookByTitle()
+    private async Task FindBookByTitle()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the title:");
-        var title = _receiver.ReceiveInput();
-        var bookFound = _repository.GetByTitle(title);
-        _rendererBooks.RenderResult(bookFound);
+        var title = AnsiConsole.Ask<string>("Enter the [bold]title[/]:");
+        var bookFound = await _repository.GetByTitle(title);
+        var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
-    private void FindBookByAuthor()
+    private async Task FindBookByAuthor()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the author:");
-        var author = _receiver.ReceiveInput();
-        var bookFound = _repository.GetByAuthor(author);
-        _rendererBooks.RenderResult(bookFound);
+        var author = AnsiConsole.Ask<string>("Enter the [bold]author[/]:");
+        var bookFound = await _repository.GetByAuthor(author);
+        var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
+        ResultRenderer.RenderResult(bookFormated);
     }
 
-    private void FindBookByISBN()
+    private async Task FindBookByISBN()
     {
-        _messageRenderer.RenderSimpleMessage("Enter the ISBN:");
-        var ISBN = _receiver.ReceiveInput();
-        var bookFound = _repository.GetByISBN(ISBN);
-        _rendererBooks.RenderResult(bookFound);
+        var ISBN = AnsiConsole.Ask<string>("Enter the [bold]ISBN[/]:");
+        var bookFound = await _repository.GetByISBN(ISBN);
+        var bookFormated = await _bookFormatterFactory.CreateVerboseFormatter(bookFound);
+        ResultRenderer.RenderResult(bookFormated);
+    }
+
+    private async Task RenderVerboseBooksFormatted(List<Book> books)
+    {
+        var booksFormated = await Task.WhenAll(books.Select(async book =>
+                                    await _bookFormatterFactory
+                                    .CreateVerboseFormatter(book)));
+
+        ResultRenderer.RenderResults(booksFormated.ToList());
     }
 
 }

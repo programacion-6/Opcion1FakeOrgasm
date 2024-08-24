@@ -5,8 +5,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <NoWarn>CS8603, CS8620, CS8619, CS8604</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Folder Include="src/Controller/" />
     <Folder Include="src/Controller/Concrete/" />
@@ -28,6 +29,14 @@
     <Folder Include="src/View/Renderers/Interfaces/" />
     <Folder Include="src/View/Utils/" />
     <Folder Include="src/View/ViewChangers/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.49.1" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
   </ItemGroup>
 
 </Project>

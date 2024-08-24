@@ -2,7 +2,7 @@
 
 public interface IFineRepository : IRepository<Fine>
 {
-    Fine? GetByLoan(Loan loan);
-    List<Fine> GetFinesByPatron(Patron patron);
-    List<Fine> GetActiveFines();
+    Task<Fine?> GetByLoan(Guid loanId);
+    Task<IEnumerable<Fine>> GetFinesByPatron(Guid patronId);
+    Task<IEnumerable<Fine>> GetActiveFines();
 }

@@ -110,4 +110,22 @@ public class BookRepository : IBookRepository
             return await connection.QueryAsync<Book>(sql, new { Genre = genre });
         }
     }
+
+    public async Task<IEnumerable<Book>> GetByPage(int pageNumber, int pageSize)
+    {
+        const string sql = @"
+        SELECT * 
+        FROM Books
+        ORDER BY Title
+        OFFSET @Offset ROWS
+        FETCH NEXT @PageSize ROWS ONLY";
+
+        int offset = (pageNumber - 1) * pageSize;
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            return await connection.QueryAsync<Book>(sql, new { Offset = offset, PageSize = pageSize });
+        }
+    }
+
 }

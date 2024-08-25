@@ -1,0 +1,26 @@
+@startuml
+package "req [Package] Book management [requirement diagram]" {
+    stereotype "Book Properties" as properties <<Requirement>> {
+        overview = Each book should have title, author, ISBN, genre and publication year.
+    }
+
+    stereotype "Book repository" as repository <<Requirement>> {
+        overview = Allow the library staff to add, update, and remove books from the collection
+    }
+
+    stereotype "Book view" as list_view <<Requirement>> {
+        overview = Books can be categorized by genres, and the system should support listing books by genre
+    }
+
+    stereotype "Books management" as book_management <<Requirement>> {
+        overview = The system should allow the library staff to add, update, and remove books from the collection. Each book
+        should have properties like title, author, ISBN, genre, and publication year
+        Books can be categorized by genres, and the system should support listing books by genre
+    }
+
+    book_management +-- list_view
+    book_management +-- repository
+    book_management +-- properties
+}
+@enduml
+

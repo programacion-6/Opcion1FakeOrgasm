@@ -1,0 +1,28 @@
+@startuml
+package "req [Package] Borrowing system [requirement diagram]" {
+    stereotype "Fines calculation (optional)" as fines_calculation <<Requirement>> {
+        overview = Implement a system for calculating and recording fines for overdue books.
+    }
+
+    stereotype "Borrow availability" as borrow_availability <<Requirement>> {
+        overview = check the availability of books and prevent double booking.
+    }
+
+    stereotype "Reservations (optional)" as reservations <<Requirement>> {
+        overview =  Allow patrons to reserve books that are currently borrowed.
+    }
+
+    stereotype "Borrow tracking" as borrow_tracking  <<Requirement>> {
+        overview = Ensure that the system tracks which books are currently borrowed, who borrowed them, and due dates for returning them.
+    }
+    borrow_tracking <.. reservations: <<deriveReqt>>
+    borrow_tracking <.. fines_calculation: <<deriveReqt>>
+
+    stereotype "Borrowing system" as borrowing_system <<Requirement>> {
+        overview = Implement a mechanism to handle the borrowing and returning of books. Ensure that the system tracks which books are currently borrowed, who borrowed them, and due dates for returning them.
+        Include a feature to check the availability of books and prevent double booking.
+    }
+    borrowing_system +-- borrow_availability
+    borrowing_system +-- borrow_tracking
+}
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+package "req [Package] Search&Reporting [requirement diagram]" {
+    stereotype "Book search" as book_search <<Requirement>> {
+    overview = functionality to find books by title, author, or ISBN.
+    }
+
+    stereotype "Patron search" as patron_search <<Requirement>> {
+    overview = Allow searching for patrons by name or membership number
+    }
+
+    stereotype "Borrowing debt" (optional)" as borrowing_debt <<Requirement>> {
+    overview = The system should provide information about the patron's debts
+    }
+
+    stereotype "Statistics (optional)" as statistics <<Requirement>> {
+    overview = Provide statistical data, such as the most borrowed books, most active patrons, etc
+    }
+
+    stereotype "Reporting" as reporting <<Requirement>> {
+    overview = generate reports such as a list of all books currently borrowed, overdue books, and borrowing history for a specific patron
+    }
+    reporting <.. borrowing_debt: <<deriveReqt>>
+    reporting <.. statistics: <<deriveReqt>>
+
+    stereotype "Search and Reporting" as  search_reporting <<Requirement>> {
+    overview = Implement search functionality to find books by title, author, or ISBN. Allow searching for patrons by name or membership number
+    The system should generate reports such as a list of all books currently borrowed, overdue books, and borrowing history for a specific patron
+    }
+    search_reporting +-- book_search
+    search_reporting +-- patron_search
+    search_reporting +-- reporting
+}
+@enduml

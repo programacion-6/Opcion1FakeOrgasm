@@ -1,0 +1,30 @@
+stereotype "" as <<Requirement>> {
+    overview = 
+}
+@startuml
+skinparam wrapWidth 200
+
+package "req [Package] Library System [requirement diagram]" {
+!include ./book-management.puml
+!include ./borrowing-system.puml
+!include ./patrons-management.puml
+!include ./search-reporting.puml
+
+    stereotype "User Interface" as  user_interface <<Guideline>> {
+        overview = Create a user-friendly console interface that guides users through the available functionalities. The interface should be intuitive and provide clear instructions and feedback 
+    }
+
+    stereotype "Error Handling and Validation" as  error_handling_validation <<Guideline>> {
+        overview = Implement robust error handling and input validation to ensure the system is stable and reliable.
+    }
+
+    stereotype "Library Management System" as system <<Requirement>> {
+        overview = Develop a console application for managing a library's collection of books, patrons (library members), and borrowing transactions. The system should support the management of books and patrons, handle the lending process, and provide various reports and queries.
+    }
+    system +-- borrowing_system
+    system +-- search_reporting
+    system +-- book_management
+    system +-- patron_management
+}
+@enduml
+

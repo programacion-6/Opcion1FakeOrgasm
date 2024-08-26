@@ -5,10 +5,12 @@ namespace LibrarySystem;
 public class PatronRequesterByConsole : IEntityRequester<Patron>
 {
     private IMessageRenderer _renderer;
+    private ErrorLogger _errorLogger;
 
     public PatronRequesterByConsole(IMessageRenderer renderer)
     {
         _renderer = renderer;
+        _errorLogger = new ErrorLogger();
     }
 
     public Patron? AskForEntity()
@@ -22,10 +24,12 @@ public class PatronRequesterByConsole : IEntityRequester<Patron>
         }
         catch (PatronException ex)
         {
+            _errorLogger.LogErrorBasedOnSeverity(ex.Severity, ex.Message, ex);
             _renderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)
         {
+            _errorLogger.LogErrorBasedOnSeverity(SeverityLevel.High, "", ex);
             _renderer.RenderErrorMessage(ex.Message);
         }
 

@@ -12,6 +12,8 @@ public class LoanControllerAsText : IExecutableHandler<string>
     private EntitySelectorByConsole<Patron> _patronSelector;
     private EntitySelectorByConsole<Book> _bookSelector;
 
+    private ErrorLogger _errorLogger;
+
     public LoanControllerAsText(Lender lender, ILoanRepository loanRepository, IPatronRepository patronRepository, IBookRepository bookRepository, IMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector, EntitySelectorByConsole<Book> bookSelector)
     {
         _lender = lender;
@@ -21,6 +23,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
         _messageRenderer = messageRenderer;
         _patronSelector = patronSelector;
         _bookSelector = bookSelector;
+        _errorLogger = new ErrorLogger();
     }
 
     public async Task Execute(string inputReceived)
@@ -142,10 +145,12 @@ public class LoanControllerAsText : IExecutableHandler<string>
         }
         catch (LoanException ex)
         {
+            _errorLogger.LogErrorBasedOnSeverity(ex.Severity, ex.Message, ex);
             _messageRenderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)
         {
+            _errorLogger.LogErrorBasedOnSeverity(SeverityLevel.High, "", ex);
             _messageRenderer.RenderErrorMessage(ex.Message);
 
         }

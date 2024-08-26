@@ -70,10 +70,10 @@ public class BookValidator
         if (!Regex.IsMatch(isbn, isbnPattern))
         {
             throw new BookException(
-                "ISBN format is invalid. It should be in the format 978-3-16-148410-0 or similar.",
+                "ISBN format is invalid. It should be in the format 9780471117094 or similar.",
                 SeverityLevel.High,
                 "This error suggests that the ISBN entered does not match the standard format. " +
-                "Please verify the ISBN and ensure it conforms to the standard format, such as '978-3-16-148410-0'.");
+                "Please verify the ISBN and ensure it conforms to the standard format, such as '9780471117094'.");
         }
     }
 

@@ -145,7 +145,7 @@ public class LoanControllerAsText : IExecutableHandler<string>
         }
         catch (LoanException ex)
         {
-            _errorLogger.LogErrorBasedOnSeverity(ex.Severity, "", ex);
+            _errorLogger.LogErrorBasedOnSeverity(ex.Severity, ex.Message, ex);
             _messageRenderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)

@@ -24,7 +24,7 @@ public class PatronRequesterByConsole : IEntityRequester<Patron>
         }
         catch (PatronException ex)
         {
-            _errorLogger.LogErrorBasedOnSeverity(ex.Severity, "", ex);
+            _errorLogger.LogErrorBasedOnSeverity(ex.Severity, ex.Message, ex);
             _renderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)

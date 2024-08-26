@@ -7,10 +7,13 @@ public class BookRequesterByConsole : IEntityRequester<Book>
     private IMessageRenderer _renderer;
     private BookValidator _bookValidator;
 
+    private ErrorLogger _errorLogger;
+
     public BookRequesterByConsole(IMessageRenderer renderer)
     {
         _renderer = renderer;
         _bookValidator = new BookValidator();
+        _errorLogger = new ErrorLogger();
     }
 
     public Book? AskForEntity()
@@ -24,10 +27,12 @@ public class BookRequesterByConsole : IEntityRequester<Book>
         }
         catch (BookException ex)
         {
+            _errorLogger.LogErrorBasedOnSeverity(ex.Severity, "", ex);
             _renderer.RenderErrorMessage($"{ex.Message} \n...{ex.ResolutionSuggestion}");
         }
         catch (Exception ex)
         {
+            _errorLogger.LogErrorBasedOnSeverity(SeverityLevel.High, "", ex);
             _renderer.RenderErrorMessage(ex.Message);
         }
 

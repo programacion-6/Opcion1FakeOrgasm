@@ -2,11 +2,20 @@
 
 ## Members:
 
+**Original Team**
 -   Salet Gutierrez Nava
 -   Luiggy Mamani Condori
 -   Axel Javier Ayala Siles
 -   Gabriel Santiago Concha Saavedra
 
+**New Team**
+- Samuel Escalera
+- Diego Figueroa
+- Bianca Soliz
+
+
+### ENHANCEMENTS
+- Refactoring of the Reporting Module, Enhancement the single responsibility (Samuel Escalera) Status : In progress
 ---
 # Library System Requirements Analysis
 

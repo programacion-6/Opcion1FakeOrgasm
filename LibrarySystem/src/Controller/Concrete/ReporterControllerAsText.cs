@@ -1,8 +1,13 @@
-﻿namespace LibrarySystem;
+﻿using LibrarySystem.Reports;
+
+namespace LibrarySystem;
 
 public class ReporterControllerAsText : IExecutableHandler<string>
 {
-    private Reporter _reporter;
+    private readonly CurrentlyBorrowedBooksReporter _currentlyBorrowedBooksReporter;
+    private readonly OverdueBooksReporter _overdueBooksReporter;
+    private readonly PatronLoansReporter _patronLoansReporter;
+    private readonly PatronReporter _patronReporter;
     private StatisticsGenerator _statisticsGenerator;
     private IPatronRepository _patronRepository;
     private IMessageRenderer _messageRenderer;
@@ -13,18 +18,31 @@ public class ReporterControllerAsText : IExecutableHandler<string>
     private EntitySelectorByConsole<Patron> _patronSelector;
 
 
-    public ReporterControllerAsText(Reporter reporter, StatisticsGenerator statisticsGenerator, IPatronRepository patronRepository, IEntityFormatterFactory<Book> bookFormatterFactory, IEntityFormatterFactory<Patron> patronFormatterFactory, IEntityFormatterFactory<Loan> loanFormatterFactory, IMessageRenderer messageRenderer, EntitySelectorByConsole<Patron> patronSelector, IEntityFormatterFactory<Fine> fineFormatterFactory)
+    public ReporterControllerAsText(
+        CurrentlyBorrowedBooksReporter currentlyBorrowedBooksReporter,
+        OverdueBooksReporter overdueBooksReporter,
+        PatronLoansReporter patronLoansReporter,
+        PatronReporter patronReporter,
+        StatisticsGenerator statisticsGenerator,
+        IPatronRepository patronRepository,
+        IEntityFormatterFactory<Book> bookFormatterFactory,
+        IEntityFormatterFactory<Patron> patronFormatterFactory,
+        IEntityFormatterFactory<Loan> loanFormatterFactory,
+        IMessageRenderer messageRenderer,
+        EntitySelectorByConsole<Patron> patronSelector,
+        IEntityFormatterFactory<Fine> fineFormatterFactory)
     {
-        _reporter = reporter;
+        _currentlyBorrowedBooksReporter = currentlyBorrowedBooksReporter;
+        _overdueBooksReporter = overdueBooksReporter;
+        _patronLoansReporter = patronLoansReporter;
+        _patronReporter = patronReporter;
         _statisticsGenerator = statisticsGenerator;
         _patronRepository = patronRepository;
-
         _bookFormatterFactory = bookFormatterFactory;
         _patronFormatterFactory = patronFormatterFactory;
         _loanFormatterFactory = loanFormatterFactory;
         _messageRenderer = messageRenderer;
         _patronSelector = patronSelector;
-        _fineFormatterFactory = fineFormatterFactory;
     }
 
     public async Task Execute(string inputReceived)
@@ -60,26 +78,26 @@ public class ReporterControllerAsText : IExecutableHandler<string>
 
     public async Task ShowOverdueBooks()
     {
-        var books = await _reporter.GetOverdueBooks();
+        var books = await _overdueBooksReporter.GetOverdueBooks();
         RenderSimpleBooksFormatted(books);
     }
 
     public async Task ShowCurrentlyBorrowedBooks()
     {
-        var books = await _reporter.GetCurrentlyBorrowedBooks();
+        var books = await _currentlyBorrowedBooksReporter.GetCurrentlyBorrowedBooks();
         RenderSimpleBooksFormatted(books);
     }
 
     public async Task ShowCurrentLoansByPatron()
     {
-        var allPatrons = (await _reporter.GetPatternsThatBorrowedBooks())
-                                .GroupBy(patron => patron.Id)
-                                .Select(group => group.First())
-                                .ToList();
+        var allPatrons = (await _patronReporter.GetPatronsThatBorrowedBooks())
+            .GroupBy(patron => patron.Id)
+            .Select(group => group.First())
+            .ToList();
         var patron = await _patronSelector.TryToSelectAtLeastOne(allPatrons);
         if (patron is not null)
         {
-            var loans = await _reporter.GetLoansByPatron(patron);
+            var loans = await _patronLoansReporter.GetLoansByPatron(patron);
             await RenderLoansFormatted(loans);
         }
     }
@@ -90,7 +108,7 @@ public class ReporterControllerAsText : IExecutableHandler<string>
         var patron = await _patronSelector.TryToSelectAtLeastOne(allPatrons.ToList());
         if (patron is not null)
         {
-            var loans = await _reporter.GetLoansByPatron(patron);
+            var loans = await _patronLoansReporter.GetLoansByPatron(patron);
             if (loans.Any())
             {
                 await RenderLoansFormatted(loans);

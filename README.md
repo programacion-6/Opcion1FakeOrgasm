@@ -15,7 +15,7 @@
 
 
 ### ENHANCEMENTS
-- Refactoring of the Reporting Module, Enhancement the single responsibility (Samuel Escalera) Status : In progress
+- Refactoring of the Reporting Module, Enhancement the single responsibility (Samuel Escalera) Status : Done
 ---
 # Library System Requirements Analysis
 

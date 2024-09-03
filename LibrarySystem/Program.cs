@@ -1,6 +1,7 @@
 using Serilog;
 using LibrarySystem.Controller.BookManagement;
 using LibrarySystem.Controller.PatronManagement;
+using LibrarySystem.Reports;
 
 namespace LibrarySystem;
 
@@ -35,7 +36,10 @@ class Program
             Lender lender = new Lender(loanRepository, lenderValidator);
             DebtManager debtManager = new DebtManager(loanRepository, fineRepository);
 
-            Reporter reporter = new Reporter(loanRepository, bookRepository, patronRepository);
+            CurrentlyBorrowedBooksReporter currentlyBorrowedBooksReporter = new CurrentlyBorrowedBooksReporter(loanRepository, bookRepository);
+            OverdueBooksReporter overdueBooksReporter = new OverdueBooksReporter(loanRepository, bookRepository);
+            PatronLoansReporter patronLoansReporter = new PatronLoansReporter(loanRepository);
+            PatronReporter patronReporter = new PatronReporter(loanRepository, patronRepository);
             StatisticsGenerator statisticsGenerator = new StatisticsGenerator(loanRepository, fineRepository, bookRepository, patronRepository);
 
             IEntityRequester<Book> bookRequester = new BookRequesterByConsole(messageRenderer);
@@ -62,7 +66,20 @@ class Program
 
             IExecutableHandler<string> lenderController = new LoanControllerAsText(lender, loanRepository, patronRepository, bookRepository, messageRenderer, patronSelectorByConsole, bookSelectorByConsole);
             IExecutableHandler<string> fineController = new FineControllerAsText(debtManager, fineRepository, messageRenderer, fineFormatterFactory, fineSelectorByConsole);
-            IExecutableHandler<string> reportController = new ReporterControllerAsText(reporter, statisticsGenerator, patronRepository, bookFormatterFactory, patronFormatterFactory, loanFormatterFactory, messageRenderer, patronSelectorByConsole, fineFormatterFactory);
+            IExecutableHandler<string> reportController = new ReporterControllerAsText(
+                currentlyBorrowedBooksReporter,
+                overdueBooksReporter,
+                patronLoansReporter,
+                patronReporter,
+                statisticsGenerator,
+                patronRepository,
+                bookFormatterFactory,
+                patronFormatterFactory,
+                loanFormatterFactory,
+                messageRenderer,
+                patronSelectorByConsole,
+                fineFormatterFactory
+            );
             IExecutableHandler<string> bookController = new BookControllerAsText(
                 messageRenderer,
                 new BookSearcher(bookRepository, bookFormatterFactory),
